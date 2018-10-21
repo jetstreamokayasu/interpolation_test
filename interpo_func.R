@@ -132,3 +132,41 @@ pcaCoord.set<-function(x, cppic, div){
   return(t(coord))
   
 }
+
+#PCA適用後の座標から元座標を算出
+originCoodinate<-function(rpca, incord){
+  
+  eigen01<-as.matrix(rpca$rotation[,1])
+  eigen02<-as.matrix(rpca$rotation[,2])
+  
+  oricord<-sapply(1:nrow(incord), function(l){
+    
+  return((incord[l, 1]*(eigen01)+incord[l, 2]*(eigen02))+rpca$center)
+    
+  })
+  
+  return(t(oricord))
+  
+}
+
+#任意の点に近傍点の中から最も遠い点を抽出
+#そのもっとも遠い点から近傍の中で最も近いn点を抽出
+coveredVic<-function(vicsline, figure, n){
+  
+  distfarvic<-sapply(1:(length(vicsline)-2), function(k){
+    
+    dist.set<-c(vicsline[length(vicsline)], vicsline[k+1], sum((figure[vicsline[k+1],]-figure[vicsline[length(vicsline)],])^2))
+    names(dist.set)<-c("start", "goal", "distance")
+    
+    return(dist.set)
+    
+  })
+  
+  distfarvic<-t(distfarvic)
+  
+  distfarvic<-distfarvic[order(distfarvic[,3]),]
+  
+  return(distfarvic[1:n,])
+  
+}
+

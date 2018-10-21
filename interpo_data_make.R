@@ -7,6 +7,7 @@ figurePlot(torus.300)
 
 torus.dist<-distance(torus.300)
 
+#データ点1の近傍で実験
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
@@ -29,3 +30,33 @@ test.pic<-matrix(0, 5, 5)
 torus.vics1.cppic<-insertElement(torus.vics1.pic)
 
 torus.vics1.incord<-pcaCoord.set(vics.pca[["x"]], torus.vics1.cppic, 4)
+
+torus.vics1.oricord<-originCoodinate(vics.pca, torus.vics1.incord)
+points3d(torus.vics1.oricord, col=2)
+
+#データ点17の近傍で実験
+torus.vic17<-get.vicinity(torus.dist, 17, 15)
+
+figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
+
+torus.vic17.line<-line.vics(centr =17, torus.vic17)
+
+vic17s.pca<-prcomp(torus.300[torus.vic17.line,])
+plot(vic17s.pca[["x"]][,1], vic17s.pca[["x"]][,2], col=3, pch=16)
+gridLine(vic17s.pca[["x"]], 4)
+
+torus.vic17s.pic<-pixelConvert(vic17s.pca[["x"]], 4)
+
+torus.vic17s.cppic<-insertElement(torus.vic17s.pic)
+
+torus.vic17s.incord<-pcaCoord.set(vic17s.pca[["x"]], torus.vic17s.cppic, 4)
+points(torus.vic17s.incord, col=2, pch=16)
+
+torus.vic17s.oricord<-originCoodinate(vic17s.pca, torus.vic17s.incord)
+points3d(torus.vic17s.oricord, col=2)
+
+
+torus.vic210<-get.vicinity(torus.dist, 210, 15)
+torus.vic210.line<-line.vics(210, torus.vic210)
+
+torus.covic210<-coveredVic(torus.vic210.line, torus.300, 5)
