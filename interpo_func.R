@@ -170,3 +170,24 @@ coveredVic<-function(vicsline, figure, n){
   
 }
 
+#指定されたデータ点のnvics点近傍をPCAで変換し
+#膨張処理を行い、補間されたデータ点の下\元の座標系での座標を返す
+expandProcess<-function(centr, nvics, figure, dist, div){
+  
+  vics<-get.vicinity(torus.dist, centr, nvics)
+  
+  vics.line<-line.vics(centr, vics)
+  
+  vics.pca<-prcomp(figure[vics.line,])
+  
+  vics.pic<-pixelConvert(vics.pca[["x"]], div)
+  
+  vics.cppic<-insertElement(vics.pic)
+  
+  vics.incord<-pcaCoord.set(vics.pca[["x"]], vics.cppic, div)
+  
+  vics.oricord<-originCoodinate(vics.pca, vics.incord)
+  
+  return(vics.oricord)
+  
+}
