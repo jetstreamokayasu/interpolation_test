@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1540038335694.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3803663260",
+    "id" : "15371960",
+    "lastKnownWriteTime" : 1540041235,
+    "last_content_update" : 1540041235595,
+    "path" : "~/R/square-method/square_func.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "264,1",
+        "scrollLine" : "237"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

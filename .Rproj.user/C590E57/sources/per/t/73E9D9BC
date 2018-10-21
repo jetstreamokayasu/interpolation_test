@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1540119111534.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1649359729",
+    "id" : "73E9D9BC",
+    "lastKnownWriteTime" : 1540121172,
+    "last_content_update" : 1540121172291,
+    "path" : "~/R/interpolation_test/interpo_func.R",
+    "project_path" : "interpo_func.R",
+    "properties" : {
+        "cursorPosition" : "41,0",
+        "scrollLine" : "13",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
