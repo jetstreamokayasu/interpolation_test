@@ -218,3 +218,78 @@ interPolation_test<-function(figure, nvics, div){
   return(oricord)
   
 }
+
+#3次元図形をプロット
+figurePlot<-function(X){
+  
+  require(rgl)
+  plot3d(X)
+  aspect3d("iso")
+  
+}
+
+distance<-function(origin){
+  
+  dist<-matrix(0, (1/2)*nrow(origin)*(nrow(origin)-1), 3)
+  colnames(dist)<-c("start", "goal", "distance")
+  r<-1
+  
+  for (k in 1:nrow(origin)) {
+    for (l in (k+1):nrow(origin)) {
+      
+      #if((k!=l) && !(k %in% dist[,1]) && !(l %in% dist[,2])){
+      if(l <= nrow(origin) && k!=l){
+        #debugText(k ,l, r)
+        dist[r,1]<-k
+        dist[r,2]<-l
+        dist[r,3]<-sum((origin[k,]-origin[l,])^2)
+        r<-r+1
+      }
+      #}
+    }
+    
+  }
+  return(dist)
+}
+
+#任意(center)の点から最も近いnvic点を求める関数
+get.vicinity<-function(dis, center, nvic){
+  
+  choice<-rbind(dis[which(dis[, "start"]==center), ], dis[which(dis[, "goal"]==center), ])
+  choice<-choice[order(choice[,3]),]
+  
+  vic<-choice[1:nvic,]
+  
+  return(vic)
+  
+}
+
+#ある点を中心とした近傍点を色付けてプロット
+figurePlot.coloredVic<-function(figure, vics, centr){
+  
+  require(rgl)
+  
+  vics.line<-line.vics(centr, vics)
+  
+  plot3d(figure[-vics.line, ])
+  aspect3d("iso")
+  points3d(figure[vics.line, ], col=3)
+  
+}
+
+line.vics<-function(centr, vic){
+  
+  vics<-sapply(1:length(vic[,2]), function(t){
+    
+    if(vic[t,2]==centr) return(vic[t, 1])
+    else return(vic[t, 2])
+    
+  })
+  
+  names(vics)<-NULL
+  
+  vics<-c(centr, vics)
+  
+  return(vics)
+  
+}
