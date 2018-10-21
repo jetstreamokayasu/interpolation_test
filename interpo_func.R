@@ -4,13 +4,13 @@ existCheck<-function(start, end, mapped){
   
   exie1.mem<-which(mapped[,1]>=start[1] & mapped[,1]<end[1])
   
-  debugText(exie1.mem, start, end)
+  #debugText(exie1.mem, start, end)
   
   if(length(exie1.mem)>=1){
     
     exie2.mem<-which(mapped[exie1.mem, 2]>=start[2] & mapped[exie1.mem ,2]<end[2])
     
-    debugText(exie2.mem)
+    #debugText(exie2.mem)
     
     if(length(exie2.mem)>=1) return(T)
     
@@ -37,5 +37,98 @@ gridLine<-function(x, div){
     abline(h=ylim[1]+i*hei)
     
   }
+  
+}
+
+
+pixelConvert<-function(x, div){
+  
+  xlim<-range(x[,1])
+  ylim<-range(x[,2])
+  
+  wid<-abs(xlim[2]-xlim[1])/div
+  hei<-abs(ylim[2]-ylim[1])/div
+  
+  pixel<-matrix(0, div, div)
+  
+  for (i in 1:div) {
+    
+    for (j in 1:div) {
+      
+      if(existCheck(c(xlim[1]+(i-1)*wid, ylim[1]+(j-1)*hei), c(xlim[1]+i*wid, ylim[1]+j*hei), x)){
+    
+            pixel[j, i]<-1
+        
+      }
+    }
+    
+  }
+  
+  return(pixel)
+    
+  }
+
+#行列の注目した要素の8近傍に要素が入っているか
+#入っていればTを返す
+neighEleCheck<-function(pic, row, col){
+  
+  if(row!=1 && (col!=1) && (pic[row-1, col-1]>0)){return(T)}
+  else if((row!=1) && pic[row-1, col]>0){return(T)}
+  else if((row!=1) && col!=ncol(pic) && pic[row-1, col+1]>0){return(T)}
+  else if(col!=1 && pic[row, col-1]>0){return(T)}
+  else if(col!=ncol(pic) && pic[row, col+1]>0){return(T)}
+  else if(row!=nrow(pic) && col!=1 && pic[row+1, col-1]>0){return(T)}
+  else if(row!=nrow(pic) && pic[row+1, col]>0){return(T)}
+  else if(row!=nrow(pic) && col!=ncol(pic) && pic[row+1, col+1]>0){return(T)}
+  else{return(F)}
+  
+}  
+
+#注目要素に要素が無く、注目要素の8近傍に要素があるとき
+#注目要素に2を代入
+insertElement<-function(pic){
+  
+  cp.pic<-pic
+  
+  for (i in 1:nrow(pic)) {
+    
+    for (j in 1:ncol(pic)) {
+      
+      if(pic[i,j]==0 &&neighEleCheck(pic, i, j)){
+        
+        cp.pic[i, j]<-2
+        
+      }
+      
+    }
+    
+  }
+  
+  return(cp.pic)
+  
+}
+
+#指定された範囲にPCA後の座標を返す
+pcaCoordinate<-function(xmin, ymin, wid, hei, row, col){
+  
+  return(c(xmin+(wid*(col-1))+wid/2, ymin+(hei*(row-1))+hei/2))
+  
+}
+
+#データ点が存在しないピクセルの中央にデータ点を打つ
+#座標はPCA後の座標
+pcaCoord.set<-function(x, cppic, div){
+  
+  xlim<-range(x[,1])
+  ylim<-range(x[,2])
+  
+  wid<-abs(xlim[2]-xlim[1])/div
+  hei<-abs(ylim[2]-ylim[1])/div
+  
+  ele<-which(cppic==2, arr.ind=TRUE)
+  
+  coord<-sapply(1:nrow(ele), function(k)pcaCoordinate(xlim[1], ylim[1], wid, hei, ele[k,1], ele[k,2]))
+  
+  return(t(coord))
   
 }
