@@ -5,7 +5,7 @@ require(rgl)
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
 
-torus.dist<-distance(torus.300)
+torus.300.dist<-distance(torus.300)
 
 #データ点1の近傍で実験
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
@@ -87,3 +87,7 @@ points3d(torus.vic100s.oricord, col=2)
 inter.oricord<-interPolation_test(torus.300, 15, 4)
 figurePlot(torus.300)
 points3d(inter.oricord, col=2)
+intered.torus.300<-conbineInterOrigin(torus.300, inter.oricord)
+figurePlot(intered.torus.300)
+ined.torus.300.diag<-ripsDiag(intered.torus.300, maxdimension = 2, maxscale = 3)
+plot(ined.torus.300.diag[[1]])

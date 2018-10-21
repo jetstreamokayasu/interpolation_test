@@ -213,7 +213,7 @@ interPolation_test<-function(figure, nvics, div){
     
   }
   
-  debugText(element)
+  #debugText(element)
   
   return(oricord)
   
@@ -291,5 +291,11 @@ line.vics<-function(centr, vic){
   vics<-c(centr, vics)
   
   return(vics)
+  
+}
+
+conbineInterOrigin<-function(figure, interpo){
+  
+  return(rbind(figure, interpo))
   
 }
