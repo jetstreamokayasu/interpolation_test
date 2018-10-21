@@ -62,12 +62,7 @@ torus.vic210.line<-line.vics(210, torus.vic210)
 torus.covic210<-coveredVic(torus.vic210.line, torus.300, 5)
 
 #データ点100の近傍で実験
-torus.vic100s.oricord<-expandProcess(100, 15, torus.300, torus.dist, 4)
-
 torus.vic100s<-get.vicinity(torus.dist, 100, 15)
-
-figurePlot.coloredVic(torus.300, torus.vic100s, centr =100)
-points3d(torus.vic100s.oricord, col=2)
 
 torus.vic100s.line<-line.vics(centr =100, torus.vic100s)
 
@@ -81,4 +76,14 @@ torus.vic100s.cppic<-insertElement(torus.vic100s.pic)
 
 torus.vic100s.incord<-pcaCoord.set(vic100s.pca[["x"]], torus.vic100s.cppic, 4)
 points(torus.vic100s.incord, col=2, pch=16)
+
+torus.vic100s.oricord<-expandProcess(torus.vic100s, torus.vic100s.line, torus.300, torus.dist, 4)
+
+figurePlot.coloredVic(torus.300, torus.vic100s, centr =100)
+points3d(torus.vic100s.oricord, col=2)
 ##########################
+
+#データ補間テスト
+inter.oricord<-interPolation_test(torus.300, 15, 4)
+figurePlot(torus.300)
+points3d(inter.oricord, col=2)

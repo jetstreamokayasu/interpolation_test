@@ -172,11 +172,7 @@ coveredVic<-function(vicsline, figure, n){
 
 #指定されたデータ点のnvics点近傍をPCAで変換し
 #膨張処理を行い、補間されたデータ点の下\元の座標系での座標を返す
-expandProcess<-function(centr, nvics, figure, dist, div){
-  
-  vics<-get.vicinity(torus.dist, centr, nvics)
-  
-  vics.line<-line.vics(centr, vics)
+expandProcess<-function(vics, vics.line, figure, dist, div){
   
   vics.pca<-prcomp(figure[vics.line,])
   
@@ -189,5 +185,36 @@ expandProcess<-function(centr, nvics, figure, dist, div){
   vics.oricord<-originCoodinate(vics.pca, vics.incord)
   
   return(vics.oricord)
+  
+}
+
+interPolation_test<-function(figure, nvics, div){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-distance(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+      vics.oricord<-expandProcess(vics, vics.line, figure, dist, div)
+      
+      if(i==1){oricord<-vics.oricord}
+      else{oricord<-rbind(oricord, vics.oricord)}
+      
+    }
+    
+  }
+  
+  debugText(element)
+  
+  return(oricord)
   
 }
