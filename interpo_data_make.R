@@ -86,4 +86,22 @@ points3d(torus.vic100s.oricord, col=2)
 #データ補間テスト
 inter.oricord<-interPolation_test(torus.300, 15, 4)
 figurePlot(torus.300)
-points3d(inter.oricord, col=2)
+points3d(inter.oricord, col="orange")
+
+sphere<-sphereUnif(200, 2, 1)
+plot3d(sphere)
+sphere.inoricord<-interPolation_test(sphere, 15, 4)
+points3d(sphere.inoricord, col="orange")
+sphere.inoricord2<-interPolation_test(sphere, 10, 3)
+
+torus.320<-torusUnif(320, 1, 2.5)
+figurePlot(torus.320)
+torus320.dist<-distance(torus.320)
+torus320.vic20s<-get.vicinity(torus320.dist, center = 20, nvic = 20)
+torus320.vic20s.line<-line.vics(20, torus320.vic20s)
+figurePlot.coloredVic(torus.320, torus320.vic20s, 20)
+figurePlot(torus.320[-torus320.vic20s.line, ])
+torus320.no20<-torus.320[-torus320.vic20s.line, ]
+
+torus320.no20.incord<-interPolation_test(torus320.no20, 15, 4)
+points3d(torus320.no20.incord, col="orange")

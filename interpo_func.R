@@ -213,7 +213,7 @@ interPolation_test<-function(figure, nvics, div){
     
   }
   
-  debugText(element)
+  #debugText(element)
   
   return(oricord)
   
