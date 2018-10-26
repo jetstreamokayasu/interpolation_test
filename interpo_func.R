@@ -293,3 +293,9 @@ line.vics<-function(centr, vic){
   return(vics)
   
 }
+
+conbineInterOrigin<-function(figure, interpo){
+  
+  return(rbind(figure, interpo))
+  
+}

@@ -4,8 +4,11 @@ require(rgl)
 
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
+
 rgl.snapshot("./data/torus_300_1.png")
-torus.dist<-distance(torus.300)
+
+torus.300.dist<-distance(torus.300)
+
 
 #データ点1の近傍で実験
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
@@ -87,6 +90,7 @@ points3d(torus.vic100s.oricord, col=2)
 #データ補間テスト
 inter.oricord<-interPolation_test(torus.300, 15, 4)
 figurePlot(torus.300)
+
 points3d(inter.oricord, col="orange")
 rgl.snapshot("./data/torus_300_intered_fin.png")
 
@@ -111,3 +115,4 @@ torus320.no20<-torus.320[-torus320.vic20s.line, ]
 
 torus320.no20.incord<-interPolation_test(torus320.no20, 15, 4)
 points3d(torus320.no20.incord, col="orange")
+
