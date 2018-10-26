@@ -116,3 +116,7 @@ torus320.no20<-torus.320[-torus320.vic20s.line, ]
 torus320.no20.incord<-interPolation_test(torus320.no20, 15, 4)
 points3d(torus320.no20.incord, col="orange")
 
+#サイクル/ノイズ判別閾値テスト
+sphere.400<-sphereUnif(400, 2, 1)
+plot3d(sphere.400)
+pre_thresh<-meanVicsDestance(sphere.400, 15)

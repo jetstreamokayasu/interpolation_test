@@ -299,3 +299,32 @@ conbineInterOrigin<-function(figure, interpo){
   return(rbind(figure, interpo))
   
 }
+
+meanVicsDestance<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-distance(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      if(i==1){vics.maxdist<-vics[nvics, "distance"]}
+      else{vics.maxdist<-c(vics.maxdist, vics[nvics, "distance"])}
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+    }
+    
+  }
+  
+  #debugText(element)
+  
+  return(mean(vics.maxdist))
+  
+}
