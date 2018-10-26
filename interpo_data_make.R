@@ -4,14 +4,14 @@ require(rgl)
 
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
-
+rgl.snapshot("./data/torus_300_1.png")
 torus.dist<-distance(torus.300)
 
 #データ点1の近傍で実験
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
-
+rgl.snapshot("./data/torus_300.png")
 torus.vic1.line<-line.vics(1, torus.vic1)
 
 vics.pca<-prcomp(torus.300[torus.vic1.line,])
@@ -30,10 +30,11 @@ test.pic<-matrix(0, 5, 5)
 torus.vics1.cppic<-insertElement(torus.vics1.pic)
 
 torus.vics1.incord<-pcaCoord.set(vics.pca[["x"]], torus.vics1.cppic, 4)
+points(torus.vics1.incord, pch=16, col=2)
 
 torus.vics1.oricord<-originCoodinate(vics.pca, torus.vics1.incord)
 points3d(torus.vics1.oricord, col=2)
-
+rgl.snapshot("./data/torus_300_intered.png")
 #データ点17の近傍で実験
 torus.vic17<-get.vicinity(torus.dist, 17, 15)
 
@@ -87,6 +88,11 @@ points3d(torus.vic100s.oricord, col=2)
 inter.oricord<-interPolation_test(torus.300, 15, 4)
 figurePlot(torus.300)
 points3d(inter.oricord, col="orange")
+rgl.snapshot("./data/torus_300_intered_fin.png")
+
+inter.oricord20<-interPolation_test(torus.300, 20, 4)
+figurePlot(torus.300)
+points3d(inter.oricord20, col="orange")
 
 sphere<-sphereUnif(200, 2, 1)
 plot3d(sphere)
