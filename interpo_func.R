@@ -328,3 +328,34 @@ meanVicsDestance<-function(figure, nvics){
   return(mean(vics.maxdist))
   
 }
+
+meanInterPolation<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-distance(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+      mean.vics<-apply(figure[vics.line,], 2, mean)
+      
+      if(i==1){inter<-mean.vics}
+      else{inter<-rbind(inter, mean.vics)}
+      
+    }
+    
+  }
+  
+  #debugText(element)
+  
+  return(inter)
+  
+}

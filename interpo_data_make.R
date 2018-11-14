@@ -120,3 +120,8 @@ points3d(torus320.no20.incord, col="orange")
 sphere.400<-sphereUnif(400, 2, 1)
 plot3d(sphere.400)
 pre_thresh<-meanVicsDestance(sphere.400, 15)
+
+#近傍3点の平均による補間
+torus300.inter<-meanInterPolation(torus.300, 2)
+figurePlot(torus.300)
+points3d(torus300.inter, col="orange")
