@@ -171,7 +171,7 @@ coveredVic<-function(vicsline, figure, n){
 }
 
 #指定されたデータ点のnvics点近傍をPCAで変換し
-#膨張処理を行い、補間されたデータ点の元の座標系での座標を返す
+#膨張処理を行い、補間されたデータ点の下\元の座標系での座標を返す
 expandProcess<-function(vics, vics.line, figure, dist, div){
   
   vics.pca<-prcomp(figure[vics.line,])
@@ -242,7 +242,7 @@ distance<-function(origin){
         #debugText(k ,l, r)
         dist[r,1]<-k
         dist[r,2]<-l
-        dist[r,3]<-sqrt(sum((origin[k,]-origin[l,])^2))
+        dist[r,3]<-sum((origin[k,]-origin[l,])^2)
         r<-r+1
       }
       #}
@@ -300,108 +300,300 @@ conbineInterOrigin<-function(figure, interpo){
   
 }
 
-
-#plotの範囲を最小値-0.5と最大値+0.5した値にする
-plotWithLimit<-function(x, pch=0, col=0, limit=0){
+meanVicsDestance<-function(figure, nvics){
   
-  if(class(limit)!="matrix"){
-    limit<-matrix(0, 2, 2)
-    rownames(limit)<-c("x", "y")
-    colnames(limit)<-c("min", "max")
-    limit["x", "min"]<-min(x[,1])-0.5
-    limit["x", "max"]<-max(x[,1])+0.5
-    limit["y", "min"]<-min(x[,2])-0.5
-    limit["y", "max"]<-max(x[,2])+0.5
-    plot(x, pch=pch, col=col, xlim = c(limit["x", "min"], limit["x", "max"]), ylim = c(limit["y", "min"], limit["y", "max"]))
-    return(limit)
-  }
-  else{
-  par(new=T)
-  plot(x, type = "l", xlim = c(limit["x", "min"], limit["x", "max"]), ylim = c(limit["y", "min"], limit["y", "max"]), xlab="", ylab="")
-  }
+  element<-rep(0, length = nrow(figure))
   
-}
-
-calcPcaDistance<-function(x){
+  dist<-distance(figure)
   
-  dist<-sapply(1:(length(x[,1])-1), function(k){
-    sqrt(sum((x[1,1:2]-x[k+1,1:2])^2))
-  })
-  
-  return(dist)
-  
-}
-
-circleDensity<-function(centr, x, pca.dist){
-  
-  r<-sqrt(sum((centr[1:2]-x)^2))
-  
-  density<-(length(pca.dist[pca.dist<=r]))/(pi*r*r)
-  
-  #debugText(length(pca.dist[pca.dist<=r]))
-  
-  return(density)
-  
-}
-
-calcDensitySet<-function(centr, pca.dist, x, y){
-  
-  density.set<-matrix(0, length(x), length(y))
-  
-  for (i in 1:length(y)) {
+  for (i in 1:nrow(figure)) {
     
-    for (j in 1:length(x)) {
+    if(element[i]==0){
       
-      density.set[j, i]<-circleDensity(centr, c(x[j], y[i]), pca.dist)
+      vics<-get.vicinity(dist, i, nvics)
+      
+      if(i==1){vics.maxdist<-vics[nvics, "distance"]}
+      else{vics.maxdist<-c(vics.maxdist, vics[nvics, "distance"])}
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
       
     }
     
   }
   
-  return(density.set)
+  #debugText(element)
+  
+  return(mean(vics.maxdist))
   
 }
 
-sumDensitySet<-function(pca.cord, x, y){
+meanInterPolation<-function(figure, nvics){
   
-  pca.dist<-distance(pca.cord)
+  element<-rep(0, length = nrow(figure))
   
-  #debugText(pca.dist)
+  dist<-distance(figure)
   
-  density.sum<-matrix(0, length(x), length(y))
-  
-  for (i in 1:length(pca.cord[,1])) {
-    between.dist<-get.vicinity(pca.dist, i, (length(pca.cord[,1])-1))
-    density.set<-calcDensitySet(pca.cord[i,], between.dist[,3], x, y)
+  for (i in 1:nrow(figure)) {
     
-    if(i==1){density.sum<-density.set
-    #debugText(density.set)
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+      mean.vics<-apply(figure[vics.line,], 2, mean)
+      
+      if(i==1){inter<-mean.vics}
+      else{inter<-rbind(inter, mean.vics)}
+      
     }
-    else{density.sum<-density.sum+density.set}
     
   }
   
-  return(density.sum)
+  #debugText(element)
+  
+  return(inter)
   
 }
 
-calcPotential<-function(pca.cord, x, y){
+#ボロノイ領域のある頂点を含む辺を出力
+vertex.side<-function(tile, vertex){
   
-  potential.sum<-matrix(0, length(x), length(y))
+  vert.set<-1:length(tile[["x"]])
+  vert.set<-c(length(tile[["x"]]), vert.set, 1)
   
-    for (q in 1:length(y)) {
+  sides<-matrix(0, 2, 2)
+  sides[1,]<-vert.set[c(vertex, vertex+1)]
+  sides[2,]<-vert.set[c(vertex+1, vertex+2)]
+  
+  return(sides)
+  
+}
+
+#交差判定を行う辺の頂点集合を作成
+# vertexSet<-function(tile, sides){
+#   
+#   if(ncol(sides)==1){return(sort(sides[,1]))}
+#   
+#   else{
+#   for (i in 1:(ncol(sides)-1)) {
+#     debugText(i)
+#     if(i==1){ver.set<-union(sides[,i], sides[,i+1])}
+#     else{ver.set<-union(ver.set, sides[,i+1])}
+#     debugText(ver.set)
+#   }
+#   
+#   return(sort(ver.set))
+#   }
+#   
+# }
+
+#辺の集合で被りを無くす
+sidesSet<-function(sides){
+  
+  check.sides<-matrix(0, 2, ncol(sides)*2)
+  #debugText(ncol(sides))
+  t<-1
+  
+  for (i in 1:ncol(sides)) {
+    check.sides[,t]<-c(sides[1,i], sides[2,i])
+    t<-t+1
+    check.sides[,t]<-c(sides[3,i], sides[4,i])
+    t<-t+1
+  }
+  
+  for(j in seq(ncol(check.sides), 1)){
+    
+    #debugText(j)
+    
+    for(k in seq((ncol(check.sides)-1), 1)){
       
-      for(p in 1:length(x)){
+      if(j!=k && setequal(check.sides[,j], check.sides[,k])){
         
-        potential.sum[p, q]<-sum(sapply(1:length(pca.cord[,1]), function(k){
-          #return(1/(sqrt(sum((pca.cord[k,]-c(x[p], y[q]))^2))*10))
-          return(exp(-(sqrt(sum((pca.cord[k,]-c(x[p], y[q]))^2))))*10)
-        }))
+        #debugText(k)
+        
+        check.sides<-check.sides[,-j]
+        
+        #debugText(check.sides)
+        
+        break
         
       }
       
     }
     
-  return(potential.sum)
+  }
+  
+  return(check.sides)
+  
+}
+
+crossCheck<-function(tile, hline, sides){
+  
+  t1<-sapply(sides[,1], function(side){
+    #debugText(side)
+    
+    return((hline[1,1]-hline[2,1])*(tile[["y"]][side]-hline[1,2]))
+    
+  })
+  
+  t2<-sapply(sides[,2], function(side){
+    
+    #cat("t2_side=", side, "\n")
+    
+    return((hline[1,1]-hline[2,1])*(tile[["y"]][side]-hline[1,2]))
+    
+  })
+
+  
+  t3<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[1,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[1,1]))
+    
+  })
+  
+  t3<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[1,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[1,1]))
+    
+  })
+  
+  t4<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[2,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[2,1]))
+    
+  })
+  
+  # debugText(t1, t2, t3, t4)
+  # debugText((t1*t2)<0)
+  # debugText((t3*t4)<0)
+  
+  #ncross<-length(which((t1*t2)<0))
+  ncross<-((t1*t2)<0 & (t3*t4)<0)
+  
+  return(ncross)
+  
+}
+
+#あるボロノイ領域内にランダムに点を打つ
+randomPointVoronoi<-function(tile){
+  
+  inter<-F
+  while (inter==F) {
+    
+    ranx<-runif(1, range(tile[["x"]]))
+    rany<-runif(1, range(tile[["y"]]))
+  
+    cross.mem<-which(tile[["x"]]>=ranx)
+    sides<-sapply(cross.mem, function(k)vertex.side(tile, k))
+    if(length(sides)<1){next}
+    check.side<-sidesSet(sides)
+    hline<-matrix(c(ranx, rany, max(tile[["x"]][which(tile[["x"]]>=ranx)]), rany), 2, 2, byrow=T)
+    ncross<-crossCheck(tile, hline, t(check.side))
+    
+    if(length(which(ncross==T)) %% 2 != 0){inter=T}
+    
+  }
+  
+  return(c(ranx, rany))
+  
+}
+
+#隣接するボロノイ領域を探す
+neighbourVoronoi<-function(tiles, centr){
+  
+  neibor<-sapply(1:length(tiles), function(k){
+    
+    if(k!=centr && any(tiles[[centr]][["x"]] %in% tiles[[k]][["x"]]))
+      
+      return(k)
+    
+  })
+  
+  for (i in length(neibor)) {
+    
+    if(is.null(neibor[[i]])){neibor[i]<-NULL}
+    
+  }
+  
+  return(unlist(neibor))
+    
+}
+
+voronoiInterpo<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-distance(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+      vics.oricord<-voronoiProcess(vics.line, figure)
+      
+      if(i==1){oricord<-vics.oricord}
+      else{oricord<-rbind(oricord, vics.oricord)}
+      
+    }
+    
+  }
+  
+  #debugText(element)
+  
+  return(oricord)
+  
+}
+
+#指定されたデータ点のnvics点近傍をPCAで変換し
+#ボロノイ図を描き、中心点のボロノイ領域
+#及び隣接するボロノイ領域内にランダムに点を打ち補間
+voronoiProcess<-function(vics.line, figure){
+  
+  require(deldir)
+  
+  vics.pca<-prcomp(figure[vics.line,])
+  
+  res<-deldir(vics.pca$x[,1], vics.pca$x[,2])
+  
+  tiles<-tile.list(res)
+  
+  neibor1<-neighbourVoronoi(tiles, 1)
+  
+  neibor1<-c(1, neibor1)
+  
+  # for (i in neibor1) {
+  #   
+  #   ranpoint<-randomPointVoronoi(tiles[[i]])
+  #   
+  #   if(i==1){incord<-ranpoint}
+  #   else{incord<-rbind(incord, ranpoint)}
+  #   
+  # }
+  
+  cenpoints<-sapply(neibor1, function(k)centerVoronoi(tiles[[k]]))
+  
+  vics.oricord<-originCoodinate(vics.pca, t(cenpoints))
+  
+  return(vics.oricord)
+  
+}
+
+centerVoronoi<-function(tile){
+  
+  cen.x<-mean(tile[["x"]])
+  cen.y<-mean(tile[["y"]])
+  
+  return(c(cen.x, cen.y))
   
 }

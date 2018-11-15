@@ -1,28 +1,30 @@
 require(TDA)
 require(myfs)
 require(rgl)
+require(deldir)
+require(ggplot2)
+require(plyr)
+require(reshape2)
+require(ggmap)
 
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
 
+rgl.snapshot("./data/torus_300_1.png")
+
 torus.300.dist<-distance(torus.300)
 
+
 #データ点1の近傍で実験
-torus.vic1<-get.vicinity(torus.300.dist, 1, 15)
+torus.vic1<-get.vicinity(torus.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
-
+rgl.snapshot("./data/torus_300.png")
 torus.vic1.line<-line.vics(1, torus.vic1)
 
 vics.pca<-prcomp(torus.300[torus.vic1.line,])
 plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16)
 gridLine(vics.pca[["x"]], 4)
-
-require(fields)
-look<- image.count(vics.pca[["x"]][,1:2], nrow=4, ncol=4)
-image.plot(look)
-
-vic1s.plot.limit<-plotWithLimit(vics.pca[["x"]], 16, 3)
 
 existCheck(c(-1.0026292, -0.7591696), c(-1.0026292+(0.4591493*1), -0.7591696+(1.450482*(1/4))), vics.pca[["x"]])
 existCheck(c(-1.0026292, -0.7591696+(1.450482*(1/4))), c(-1.0026292+(0.4591493*1), -0.7591696+(1.450482*(2/4))), vics.pca[["x"]])
@@ -30,54 +32,17 @@ existCheck(c(-1.0026292, -0.7591696+(1.450482*(1/4))), c(-1.0026292+(0.4591493*1
 points(vics.pca[["x"]][8,1], vics.pca[["x"]][8,2], pch=16)
 points(vics.pca[["x"]][1,1], vics.pca[["x"]][1,2], pch=16)
 
-vic1s.pca.dist<-calcPcaDistance(vics.pca[["x"]])
-vic1s.pca.dist2<-distance(vics.pca[["x"]])
-
-plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16, xlim=c(-1.5, 1.5), ylim=c(-1.2, 1.2), asp = 1)
-for (i in 1:length(vic1s.pca.dist)) {
-  
-  r<-vic1s.pca.dist[i]
-  t = seq(0, 2*pi, length=100)
-  plotWithLimit(cbind(r*cos(t), r*sin(t)), limit=vic1s.plot.limit)
-  
-}
-
-r<-vic1s.pca.dist[1]
-t = seq(0, 2*pi, length=100)
-plotWithLimit(cbind(r*cos(t), r*sin(t)), limit=vic1s.plot.limit)
-
-r2<-vic1s.pca.dist[2]
-plotWithLimit(cbind(r2*cos(t), r2*sin(t)), limit=vic1s.plot.limit)
-
-
-vic1.density<-circleDensity(vics.pca[["x"]][1,], vics.pca[["x"]][2,1:2], vic1s.pca.dist)
-x<-seq(vic1s.plot.limit["x", "min"], vic1s.plot.limit["x", "max"], length=100)
-y<-seq(vic1s.plot.limit["y", "min"], vic1s.plot.limit["y", "max"], length=100)
-
-vic1.densityset<-calcDensitySet(vics.pca[["x"]][1,], pca.dist = vic1s.pca.dist, x, y)
-image(x, y, vic1.densityset, col = terrain.colors(100))
-persp(x, y, vic1.densityset, theta = 30, phi = 30, expand = 0.5, col = rainbow(50), border=NA)
-
-vic1_2.dist<-get.vicinity(vic1s.pca.dist2, 2, length(vics.pca[["x"]][,1])-1)
-vic1_2.densityset<-calcDensitySet(vics.pca[["x"]][2,], pca.dist = vic1_2.dist, x, y)
-image(x, y, vic1_2.densityset+vic1.densityset, col = terrain.colors(100))
-
-vic1.density.sum<-sumDensitySet(vics.pca[["x"]][,1:2], x, y)
-image(x, y, vic1.density.sum, col = heat.colors(100))
-persp(x, y, vic1.density.sum, theta = 30, phi = 30, expand = 0.5, col = heat.colors(100), border=NA)
-contour(x, y, vic1.density.sum, method = "edge", vfont = c("sans serif", "plain"))
-
 torus.vics1.pic<-pixelConvert(vics.pca[["x"]], 4)
 test.pic<-matrix(0, 5, 5)
 
 torus.vics1.cppic<-insertElement(torus.vics1.pic)
 
 torus.vics1.incord<-pcaCoord.set(vics.pca[["x"]], torus.vics1.cppic, 4)
-points(torus.vics1.incord, col=2, pch=16)
+points(torus.vics1.incord, pch=16, col=2)
 
 torus.vics1.oricord<-originCoodinate(vics.pca, torus.vics1.incord)
 points3d(torus.vics1.oricord, col=2)
-
+rgl.snapshot("./data/torus_300_intered.png")
 #データ点17の近傍で実験
 torus.vic17<-get.vicinity(torus.dist, 17, 15)
 
@@ -130,47 +95,109 @@ points3d(torus.vic100s.oricord, col=2)
 #データ補間テスト
 inter.oricord<-interPolation_test(torus.300, 15, 4)
 figurePlot(torus.300)
-points3d(inter.oricord, col=2)
-intered.torus.300<-conbineInterOrigin(torus.300, inter.oricord)
-figurePlot(intered.torus.300)
-ined.torus.300.diag<-ripsDiag(intered.torus.300, maxdimension = 2, maxscale = 3)
-plot(ined.torus.300.diag[[1]])
 
-#関数がうまくいくか試す用のトーラス状データセット
-torus.collect11<- lapply(1:100, function(i){
-  torus <- torusUnif(300, 1, 2.5)
-  #cat("nsample=", nsample, "data", i, "\n")
-  return(list(nsample = 300, noizyX = torus, diag = 0))
-})
-save(torus.collect11, file = "./data/torus.collect11")
-figurePlot(torus.collect11[[1]][["noizyX"]])
+points3d(inter.oricord, col="orange")
+rgl.snapshot("./data/torus_300_intered_fin.png")
 
-for (i in 1:length(torus.collect11)) {
-  
-  inter.oricord<-interPolation_test(torus.collect11[[i]][["noizyX"]], 15, 4)
-  torus.collect11[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect11[[i]][["noizyX"]], inter.oricord)
-  torus.collect11[[i]][["nsample"]]<-nrow(torus.collect11[[i]][["noizyX"]])
+inter.oricord20<-interPolation_test(torus.300, 20, 4)
+figurePlot(torus.300)
+points3d(inter.oricord20, col="orange")
+
+sphere<-sphereUnif(200, 2, 1)
+plot3d(sphere)
+sphere.inoricord<-interPolation_test(sphere, 15, 4)
+points3d(sphere.inoricord, col="orange")
+sphere.inoricord2<-interPolation_test(sphere, 10, 3)
+
+torus.320<-torusUnif(320, 1, 2.5)
+figurePlot(torus.320)
+torus320.dist<-distance(torus.320)
+torus320.vic20s<-get.vicinity(torus320.dist, center = 20, nvic = 20)
+torus320.vic20s.line<-line.vics(20, torus320.vic20s)
+figurePlot.coloredVic(torus.320, torus320.vic20s, 20)
+figurePlot(torus.320[-torus320.vic20s.line, ])
+torus320.no20<-torus.320[-torus320.vic20s.line, ]
+
+torus320.no20.incord<-interPolation_test(torus320.no20, 15, 4)
+points3d(torus320.no20.incord, col="orange")
+
+#サイクル/ノイズ判別閾値テスト
+sphere.400<-sphereUnif(400, 2, 1)
+plot3d(sphere.400)
+pre_thresh<-meanVicsDestance(sphere.400, 15)
+
+#近傍3点の平均による補間
+torus300.inter<-meanInterPolation(torus.300, 2)
+figurePlot(torus.300)
+points3d(torus300.inter, col="orange")
+
+#ボロノイ図試し
+plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16)
+res1<-deldir(vics.pca$x[,1], vics.pca$x[,2])
+tiles <- tile.list(res1)
+plot(range(vics.pca[["x"]][,1]),range(vics.pca[["x"]][,2]),type="n")
+for(i in 1:res1$n.data){	polygon(tiles[[i]]) }
+points(vics.pca[["x"]][,1:2], col=3, pch=16)
+points(vics.pca[["x"]][1,1], vics.pca[["x"]][1,2], col=2, pch=16)
+#text(d$longitude,d$latitude+0.0005,d$id,col=as.numeric(d$type)+1)
+points(tiles[[1]][["x"]], tiles[[1]][["y"]], pch=15, col=2)
+text(tiles[[1]][["x"]], tiles[[1]][["y"]], c(1:length(tiles[[1]][["x"]])))
+points(tiles[[1]][["x"]], tiles[[1]][["y"]], pch=15, col=2)
+points(vics.pca[["x"]][6,1], vics.pca[["x"]][6,2], col=5, pch=17)
+points(tiles[[6]][["x"]], tiles[[6]][["y"]], pch=15, col=2)
+text(tiles[[3]][["x"]], tiles[[3]][["y"]], c(1:length(tiles[[3]][["x"]])))
+
+#ボロノイ領域内にランダムに点を打つ
+set.seed(100)
+ranx<-runif(1, min = min(tiles[[1]][["x"]]), max = max(tiles[[1]][["x"]]))
+rany<-runif(1, min = min(tiles[[1]][["y"]]), max = max(tiles[[1]][["y"]]))
+points(ranx, rany, pch=13, col=4)
+cross.mem<-which(tiles[[1]][["x"]]>=ranx)
+sides1<-vertex.side(tiles[[1]], 1)
+sides<-sapply(cross.mem, function(k)vertex.side(tiles[[1]], k))
+#ver1.set<-vertexSet(tiles[[1]], sides)
+cross1.side<-sidesSet(sides)
+hline<-matrix(c(ranx, rany, max(tiles[[1]][["x"]][which(tiles[[1]][["x"]]>=ranx)]), rany), 2, 2, byrow=T)
+ncross1<-crossCheck(tiles[[1]], hline, t(cross1.side))
+ncross1.1<-crossCheck(tiles[[1]], hline, sides)
+
+ranpoint1<-randomPointVoronoi(tiles[[1]])
+points(ranpoint1[1], ranpoint1[2], pch=13, col=4)
+
+neibor1<-neighbourVoronoi(tiles, 1)
+points(vics.pca[["x"]][2,1], vics.pca[["x"]][2,2], col=2, pch=17)
+points(vics.pca[["x"]][3,1], vics.pca[["x"]][3,2], col=2, pch=17)
+points(vics.pca[["x"]][4,1], vics.pca[["x"]][4,2], col=2, pch=17)
+points(vics.pca[["x"]][7,1], vics.pca[["x"]][7,2], col=2, pch=17)
+ranpoint2<-randomPointVoronoi(tiles[[2]])
+points(ranpoint2[1], ranpoint2[2], pch=13, col=4)
+ranpoint3<-randomPointVoronoi(tiles[[3]])
+points(ranpoint3[1], ranpoint3[2], pch=13, col=4)
+
+
+voron.oricord<-voronoiProcess(torus.vic1.line, torus.300)
+points3d(voron.oricord, col=2)
+
+figurePlot(torus.300)
+in.oricord.vo<-voronoiInterpo(torus.300, 10)
+points3d(in.oricord.vo, col=2)
+
+#データ点17の近傍で実験
+torus.vic17<-get.vicinity(torus.dist, 17, 15)
+figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
+torus.vic17.line<-line.vics(centr =17, torus.vic17)
+vic17s.pca<-prcomp(torus.300[torus.vic17.line,])
+plot(vic17s.pca[["x"]][,1], vic17s.pca[["x"]][,2], col=3, pch=16)
+
+res17<-deldir(vic17s.pca$x[,1], vic17s.pca$x[,2])
+tile17s <- tile.list(res17)
+for(i in 1:res17$n.data){	polygon(tile17s[[i]]) }
+points(vic17s.pca[["x"]][1,1], vic17s.pca[["x"]][1,2], col=2, pch=16)
+neibor17<-neighbourVoronoi(tile17s, 1)
+cenpoints17<-sapply(c(1,neibor17), function(k)centerVoronoi(tile17s[[k]]))
+for(i in 1:(length(neibor17)+1)){
+  points(cenpoints17[1,i], cenpoints17[2,i], pch=13, col=4)
 }
 
-#トーラス状データのサイクル数推定
-torus11.aggr<-homMethodsComp2compari3(torus.collect11, 2, 3, 10)
-save(torus11.aggr, file = "./data/torus11.aggr")
-
-torus11.cycle.dim1<-cyclenumber(torus11.aggr[[1]])
-torus11.cycle.dim2<-cyclenumber(torus11.aggr[[2]])
-
-torus.collect10.inted<-torus.collect10
-save(torus.collect10.inted, file = "./data/torus.collect10.inted")
-
-for (i in 1:length(torus.collect10.inted)) {
-  
-  inter.oricord<-interPolation_test(torus.collect10.inted[[i]][["noizyX"]], 15, 4)
-  torus.collect10.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect10.inted[[i]][["noizyX"]], inter.oricord)
-  torus.collect10.inted[[i]][["nsample"]]<-nrow(torus.collect10.inted[[i]][["noizyX"]])
-}
-
-torus10inted.aggr<-homMethodsComp2compari3(torus.collect10.inted, 2, 3, 10)
-save(torus10inted.aggr, file = "./data/torus10inted.aggr")
-
-torus10inted.dim1<-cyclenumber(torus10inted.aggr[[1]])
-torus10inted.dim2<-cyclenumber(torus10inted.aggr[[2]])
+voron17.oricord<-voronoiProcess(torus.vic17.line, torus.300)
+points3d(voron17.oricord, col=2)
