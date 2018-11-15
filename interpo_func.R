@@ -359,3 +359,148 @@ meanInterPolation<-function(figure, nvics){
   return(inter)
   
 }
+
+#ボロノイ領域のある頂点を含む辺を出力
+vertex.side<-function(tile, vertex){
+  
+  vert.set<-1:length(tile[["x"]])
+  vert.set<-c(length(tile[["x"]]), vert.set, 1)
+  
+  sides<-matrix(0, 2, 2)
+  sides[1,]<-vert.set[c(vertex, vertex+1)]
+  sides[2,]<-vert.set[c(vertex+1, vertex+2)]
+  
+  return(sides)
+  
+}
+
+#交差判定を行う辺の頂点集合を作成
+# vertexSet<-function(tile, sides){
+#   
+#   if(ncol(sides)==1){return(sort(sides[,1]))}
+#   
+#   else{
+#   for (i in 1:(ncol(sides)-1)) {
+#     debugText(i)
+#     if(i==1){ver.set<-union(sides[,i], sides[,i+1])}
+#     else{ver.set<-union(ver.set, sides[,i+1])}
+#     debugText(ver.set)
+#   }
+#   
+#   return(sort(ver.set))
+#   }
+#   
+# }
+
+#辺の集合で被りを無くす
+sidesSet<-function(sides){
+  
+  check.sides<-matrix(0, 2, ncol(sides)*2)
+  #debugText(ncol(sides))
+  t<-1
+  
+  for (i in 1:ncol(sides)) {
+    check.sides[,t]<-c(sides[1,i], sides[2,i])
+    t<-t+1
+    check.sides[,t]<-c(sides[3,i], sides[4,i])
+    t<-t+1
+  }
+  
+  for(j in seq(ncol(check.sides), 1)){
+    
+    #debugText(j)
+    
+    for(k in seq((ncol(check.sides)-1), 1)){
+      
+      if(j!=k && setequal(check.sides[,j], check.sides[,k])){
+        
+        #debugText(k)
+        
+        check.sides<-check.sides[,-j]
+        
+        #debugText(check.sides)
+        
+        break
+        
+      }
+      
+    }
+    
+  }
+  
+  return(check.sides)
+  
+}
+
+crossCheck<-function(tile, hline, sides){
+  
+  t1<-sapply(sides[,1], function(side){
+    #debugText(side)
+    
+    return((hline[1,1]-hline[2,1])*(tile[["y"]][side]-hline[1,2]))
+    
+  })
+  
+  t2<-sapply(sides[,2], function(side){
+    
+    #cat("t2_side=", side, "\n")
+    
+    return((hline[1,1]-hline[2,1])*(tile[["y"]][side]-hline[1,2]))
+    
+  })
+
+  
+  t3<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[1,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[1,1]))
+    
+  })
+  
+  t3<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[1,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[1,1]))
+    
+  })
+  
+  t4<-sapply(1:nrow(sides), function(k){
+    
+    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[2,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[2,1]))
+    
+  })
+  
+  # debugText(t1, t2, t3, t4)
+  # debugText((t1*t2)<0)
+  # debugText((t3*t4)<0)
+  
+  #ncross<-length(which((t1*t2)<0))
+  ncross<-((t1*t2)<0 & (t3*t4)<0)
+  
+  return(ncross)
+  
+}
+
+#あるボロノイ領域内にランダムに点を打つ
+randomPointVoronoi<-function(tile){
+  
+  inter<-F
+  while (inter==F) {
+    
+    ranx<-runif(1, range(tile[["x"]]))
+    rany<-runif(1, range(tile[["y"]]))
+  
+    cross.mem<-which(tile[["x"]]>=ranx)
+    sides<-sapply(cross.mem, function(k)vertex.side(tile, k))
+    if(length(sides)<1){next}
+    check.side<-sidesSet(sides)
+    hline<-matrix(c(ranx, rany, max(tile[["x"]][which(tile[["x"]]>=ranx)]), rany), 2, 2, byrow=T)
+    ncross<-crossCheck(tile, hline, t(check.side))
+    
+    if(length(which(ncross==T)) %% 2 != 0){inter=T}
+    
+  }
+  
+  return(c(ranx, rany))
+  
+}
+
+#隣接するボロノイ領域を探す
