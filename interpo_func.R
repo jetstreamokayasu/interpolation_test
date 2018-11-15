@@ -504,3 +504,96 @@ randomPointVoronoi<-function(tile){
 }
 
 #隣接するボロノイ領域を探す
+neighbourVoronoi<-function(tiles, centr){
+  
+  neibor<-sapply(1:length(tiles), function(k){
+    
+    if(k!=centr && any(tiles[[centr]][["x"]] %in% tiles[[k]][["x"]]))
+      
+      return(k)
+    
+  })
+  
+  for (i in length(neibor)) {
+    
+    if(is.null(neibor[[i]])){neibor[i]<-NULL}
+    
+  }
+  
+  return(unlist(neibor))
+    
+}
+
+voronoiInterpo<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-distance(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get.vicinity(dist, i, nvics)
+      
+      vics.line<-line.vics(i, vics)
+      
+      element[vics.line]<-element[vics.line]+1
+      
+      vics.oricord<-voronoiProcess(vics.line, figure)
+      
+      if(i==1){oricord<-vics.oricord}
+      else{oricord<-rbind(oricord, vics.oricord)}
+      
+    }
+    
+  }
+  
+  #debugText(element)
+  
+  return(oricord)
+  
+}
+
+#指定されたデータ点のnvics点近傍をPCAで変換し
+#ボロノイ図を描き、中心点のボロノイ領域
+#及び隣接するボロノイ領域内にランダムに点を打ち補間
+voronoiProcess<-function(vics.line, figure){
+  
+  require(deldir)
+  
+  vics.pca<-prcomp(figure[vics.line,])
+  
+  res<-deldir(vics.pca$x[,1], vics.pca$x[,2])
+  
+  tiles<-tile.list(res)
+  
+  neibor1<-neighbourVoronoi(tiles, 1)
+  
+  neibor1<-c(1, neibor1)
+  
+  # for (i in neibor1) {
+  #   
+  #   ranpoint<-randomPointVoronoi(tiles[[i]])
+  #   
+  #   if(i==1){incord<-ranpoint}
+  #   else{incord<-rbind(incord, ranpoint)}
+  #   
+  # }
+  
+  cenpoints<-sapply(neibor1, function(k)centerVoronoi(tiles[[k]]))
+  
+  vics.oricord<-originCoodinate(vics.pca, t(cenpoints))
+  
+  return(vics.oricord)
+  
+}
+
+centerVoronoi<-function(tile){
+  
+  cen.x<-mean(tile[["x"]])
+  cen.y<-mean(tile[["y"]])
+  
+  return(c(cen.x, cen.y))
+  
+}

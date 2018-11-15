@@ -163,3 +163,41 @@ ncross1.1<-crossCheck(tiles[[1]], hline, sides)
 
 ranpoint1<-randomPointVoronoi(tiles[[1]])
 points(ranpoint1[1], ranpoint1[2], pch=13, col=4)
+
+neibor1<-neighbourVoronoi(tiles, 1)
+points(vics.pca[["x"]][2,1], vics.pca[["x"]][2,2], col=2, pch=17)
+points(vics.pca[["x"]][3,1], vics.pca[["x"]][3,2], col=2, pch=17)
+points(vics.pca[["x"]][4,1], vics.pca[["x"]][4,2], col=2, pch=17)
+points(vics.pca[["x"]][7,1], vics.pca[["x"]][7,2], col=2, pch=17)
+ranpoint2<-randomPointVoronoi(tiles[[2]])
+points(ranpoint2[1], ranpoint2[2], pch=13, col=4)
+ranpoint3<-randomPointVoronoi(tiles[[3]])
+points(ranpoint3[1], ranpoint3[2], pch=13, col=4)
+
+
+voron.oricord<-voronoiProcess(torus.vic1.line, torus.300)
+points3d(voron.oricord, col=2)
+
+figurePlot(torus.300)
+in.oricord.vo<-voronoiInterpo(torus.300, 10)
+points3d(in.oricord.vo, col=2)
+
+#データ点17の近傍で実験
+torus.vic17<-get.vicinity(torus.dist, 17, 15)
+figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
+torus.vic17.line<-line.vics(centr =17, torus.vic17)
+vic17s.pca<-prcomp(torus.300[torus.vic17.line,])
+plot(vic17s.pca[["x"]][,1], vic17s.pca[["x"]][,2], col=3, pch=16)
+
+res17<-deldir(vic17s.pca$x[,1], vic17s.pca$x[,2])
+tile17s <- tile.list(res17)
+for(i in 1:res17$n.data){	polygon(tile17s[[i]]) }
+points(vic17s.pca[["x"]][1,1], vic17s.pca[["x"]][1,2], col=2, pch=16)
+neibor17<-neighbourVoronoi(tile17s, 1)
+cenpoints17<-sapply(c(1,neibor17), function(k)centerVoronoi(tile17s[[k]]))
+for(i in 1:(length(neibor17)+1)){
+  points(cenpoints17[1,i], cenpoints17[2,i], pch=13, col=4)
+}
+
+voron17.oricord<-voronoiProcess(torus.vic17.line, torus.300)
+points3d(voron17.oricord, col=2)
