@@ -171,7 +171,7 @@ coveredVic<-function(vicsline, figure, n){
 }
 
 #指定されたデータ点のnvics点近傍をPCAで変換し
-#膨張処理を行い、補間されたデータ点の下\元の座標系での座標を返す
+#膨張処理を行い、補間されたデータ点の元の座標系での座標を返す
 expandProcess<-function(vics, vics.line, figure, dist, div){
   
   vics.pca<-prcomp(figure[vics.line,])
@@ -242,7 +242,7 @@ distance<-function(origin){
         #debugText(k ,l, r)
         dist[r,1]<-k
         dist[r,2]<-l
-        dist[r,3]<-sum((origin[k,]-origin[l,])^2)
+        dist[r,3]<-sqrt(sum((origin[k,]-origin[l,])^2))
         r<-r+1
       }
       #}
@@ -297,5 +297,67 @@ line.vics<-function(centr, vic){
 conbineInterOrigin<-function(figure, interpo){
   
   return(rbind(figure, interpo))
+  
+}
+
+
+#plotの範囲を最小値-0.5と最大値+0.5した値にする
+plotWithLimit<-function(x, pch=0, col=0, limit=0){
+  
+  if(class(limit)!="matrix"){
+    limit<-matrix(0, 2, 2)
+    rownames(limit)<-c("x", "y")
+    colnames(limit)<-c("min", "max")
+    limit["x", "min"]<-min(x[,1])-0.5
+    limit["x", "max"]<-max(x[,1])+0.5
+    limit["y", "min"]<-min(x[,2])-0.5
+    limit["y", "max"]<-max(x[,2])+0.5
+    plot(x, pch=pch, col=col, xlim = c(limit["x", "min"], limit["x", "max"]), ylim = c(limit["y", "min"], limit["y", "max"]))
+    return(limit)
+  }
+  else{
+  par(new=T)
+  plot(x, type = "l", xlim = c(limit["x", "min"], limit["x", "max"]), ylim = c(limit["y", "min"], limit["y", "max"]), xlab="", ylab="")
+  }
+  
+}
+
+calcPcaDistance<-function(x){
+  
+  dist<-sapply(1:(length(x[,1])-1), function(k){
+    sqrt(sum((x[1,1:2]-x[k+1,1:2])^2))
+  })
+  
+  return(dist)
+  
+}
+
+circleDensity<-function(centr, x, pca.dist){
+  
+  r<-sqrt(sum((centr[1:2]-x)^2))
+  
+  density<-(length(pca.dist[pca.dist<=r]))/(pi*r*r)
+  
+  #debugText(length(pca.dist[pca.dist<=r]))
+  
+  return(density)
+  
+}
+
+calcDensitySet<-function(centr, pca.dist, x, y){
+  
+  density.set<-matrix(0, length(x), length(y))
+  
+  for (i in 1:length(y)) {
+    
+    for (j in 1:length(x)) {
+      
+      density.set[j, i]<-circleDensity(centr, c(x[j], y[i]), pca.dist)
+      
+    }
+    
+  }
+  
+  return(density.set)
   
 }
