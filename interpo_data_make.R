@@ -203,9 +203,17 @@ voron17.oricord<-voronoiProcess(torus.vic17.line, torus.300)
 points3d(voron17.oricord, col=2)
 
 #ボロノイ補間がうまくいくか試す用のトーラス状データセット
-torus.collect10.inted<-torus.collect10
+torus.collect14 <- lapply(1:100, function(i){
+  nsample <- 300
+  #var <- runif(1, var.min, var.max)
+  #noize.torus <- matrix(rnorm(nsample * 3, 0, var), nrow = nsample)
+  torus <- torusUnif(nsample, 1, 2.5)
+  return(list(nsample = nsample, noizyX = torus, diag = 0))
+})
+save(torus.collect14, file = "./data/torus.collect14")
+
 save(torus.collect10.inted, file = "./data/torus.collect10.inted")
-for (i in 1:length(torus.collect10.inted)) {
+for (i in 1:length(torus.collect14)) {
   inter.oricord<-voronoiInterpo(torus.collect10.inted[[i]][["noizyX"]], 10)
   torus.collect10.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect10.inted[[i]][["noizyX"]], inter.oricord)
   torus.collect10.inted[[i]][["nsample"]]<-nrow(torus.collect10.inted[[i]][["noizyX"]])
@@ -216,3 +224,5 @@ save(torus10inted.aggr, file = "./data/torus10inted.aggr")
 
 torus10inted.dim1<-cyclenumber(torus10inted.aggr[[1]])
 torus10inted.dim2<-cyclenumber(torus10inted.aggr[[2]])
+
+figurePlot(torus.collect10.inted[[1]][["noizyX"]])
