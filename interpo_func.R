@@ -361,3 +361,47 @@ calcDensitySet<-function(centr, pca.dist, x, y){
   return(density.set)
   
 }
+
+sumDensitySet<-function(pca.cord, x, y){
+  
+  pca.dist<-distance(pca.cord)
+  
+  #debugText(pca.dist)
+  
+  density.sum<-matrix(0, length(x), length(y))
+  
+  for (i in 1:length(pca.cord[,1])) {
+    between.dist<-get.vicinity(pca.dist, i, (length(pca.cord[,1])-1))
+    density.set<-calcDensitySet(pca.cord[i,], between.dist[,3], x, y)
+    
+    if(i==1){density.sum<-density.set
+    #debugText(density.set)
+    }
+    else{density.sum<-density.sum+density.set}
+    
+  }
+  
+  return(density.sum)
+  
+}
+
+calcPotential<-function(pca.cord, x, y){
+  
+  potential.sum<-matrix(0, length(x), length(y))
+  
+    for (q in 1:length(y)) {
+      
+      for(p in 1:length(x)){
+        
+        potential.sum[p, q]<-sum(sapply(1:length(pca.cord[,1]), function(k){
+          #return(1/(sqrt(sum((pca.cord[k,]-c(x[p], y[q]))^2))*10))
+          return(exp(-(sqrt(sum((pca.cord[k,]-c(x[p], y[q]))^2))))*10)
+        }))
+        
+      }
+      
+    }
+    
+  return(potential.sum)
+  
+}

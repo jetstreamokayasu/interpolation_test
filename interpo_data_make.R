@@ -18,6 +18,10 @@ vics.pca<-prcomp(torus.300[torus.vic1.line,])
 plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16)
 gridLine(vics.pca[["x"]], 4)
 
+require(fields)
+look<- image.count(vics.pca[["x"]][,1:2], nrow=4, ncol=4)
+image.plot(look)
+
 vic1s.plot.limit<-plotWithLimit(vics.pca[["x"]], 16, 3)
 
 existCheck(c(-1.0026292, -0.7591696), c(-1.0026292+(0.4591493*1), -0.7591696+(1.450482*(1/4))), vics.pca[["x"]])
@@ -53,6 +57,15 @@ y<-seq(vic1s.plot.limit["y", "min"], vic1s.plot.limit["y", "max"], length=100)
 vic1.densityset<-calcDensitySet(vics.pca[["x"]][1,], pca.dist = vic1s.pca.dist, x, y)
 image(x, y, vic1.densityset, col = terrain.colors(100))
 persp(x, y, vic1.densityset, theta = 30, phi = 30, expand = 0.5, col = rainbow(50), border=NA)
+
+vic1_2.dist<-get.vicinity(vic1s.pca.dist2, 2, length(vics.pca[["x"]][,1])-1)
+vic1_2.densityset<-calcDensitySet(vics.pca[["x"]][2,], pca.dist = vic1_2.dist, x, y)
+image(x, y, vic1_2.densityset+vic1.densityset, col = terrain.colors(100))
+
+vic1.density.sum<-sumDensitySet(vics.pca[["x"]][,1:2], x, y)
+image(x, y, vic1.density.sum, col = heat.colors(100))
+persp(x, y, vic1.density.sum, theta = 30, phi = 30, expand = 0.5, col = heat.colors(100), border=NA)
+contour(x, y, vic1.density.sum, method = "edge", vfont = c("sans serif", "plain"))
 
 torus.vics1.pic<-pixelConvert(vics.pca[["x"]], 4)
 test.pic<-matrix(0, 5, 5)
