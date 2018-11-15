@@ -201,3 +201,18 @@ for(i in 1:(length(neibor17)+1)){
 
 voron17.oricord<-voronoiProcess(torus.vic17.line, torus.300)
 points3d(voron17.oricord, col=2)
+
+#ボロノイ補間がうまくいくか試す用のトーラス状データセット
+torus.collect10.inted<-torus.collect10
+save(torus.collect10.inted, file = "./data/torus.collect10.inted")
+for (i in 1:length(torus.collect10.inted)) {
+  inter.oricord<-voronoiInterpo(torus.collect10.inted[[i]][["noizyX"]], 10)
+  torus.collect10.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect10.inted[[i]][["noizyX"]], inter.oricord)
+  torus.collect10.inted[[i]][["nsample"]]<-nrow(torus.collect10.inted[[i]][["noizyX"]])
+}
+
+torus10inted.aggr<-proposedMethodOnly(torus.collect10.inted, 2, 3, 10)
+save(torus10inted.aggr, file = "./data/torus10inted.aggr")
+
+torus10inted.dim1<-cyclenumber(torus10inted.aggr[[1]])
+torus10inted.dim2<-cyclenumber(torus10inted.aggr[[2]])
