@@ -211,18 +211,19 @@ torus.collect14 <- lapply(1:100, function(i){
   return(list(nsample = nsample, noizyX = torus, diag = 0))
 })
 save(torus.collect14, file = "./data/torus.collect14")
-
-save(torus.collect10.inted, file = "./data/torus.collect10.inted")
+torus.collect14.inted<-torus.collect14
 for (i in 1:length(torus.collect14)) {
-  inter.oricord<-voronoiInterpo(torus.collect10.inted[[i]][["noizyX"]], 10)
-  torus.collect10.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect10.inted[[i]][["noizyX"]], inter.oricord)
-  torus.collect10.inted[[i]][["nsample"]]<-nrow(torus.collect10.inted[[i]][["noizyX"]])
+  inter.oricord<-voronoiInterpo(torus.collect14[[i]][["noizyX"]], 10)
+  torus.collect14.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect14[[i]][["noizyX"]], inter.oricord)
+  torus.collect14.inted[[i]][["nsample"]]<-nrow(torus.collect14[[i]][["noizyX"]])
 }
+save(torus.collect14.inted, file = "./data/torus.collect14.inted")
+torus14inted.aggr<-proposedMethodOnly(torus.collect14.inted, 2, 3, 10)
+save(torus14inted.aggr, file = "./data/torus14inted.aggr")
 
-torus10inted.aggr<-proposedMethodOnly(torus.collect10.inted, 2, 3, 10)
-save(torus10inted.aggr, file = "./data/torus10inted.aggr")
+torus14inted.dim1<-cyclenumber(torus14inted.aggr[[1]])
+torus14inted.dim2<-cyclenumber(torus14inted.aggr[[2]])
 
-torus10inted.dim1<-cyclenumber(torus10inted.aggr[[1]])
-torus10inted.dim2<-cyclenumber(torus10inted.aggr[[2]])
-
-figurePlot(torus.collect10.inted[[1]][["noizyX"]])
+figurePlot(torus.collect14[[1]][["noizyX"]])
+inter14.1.oricord<-voronoiInterpo(torus.collect14[[1]][["noizyX"]], 10)
+points3d(inter14.1.oricord, col="orange")
