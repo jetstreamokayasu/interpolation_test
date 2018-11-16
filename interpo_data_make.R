@@ -213,17 +213,26 @@ torus.collect14 <- lapply(1:100, function(i){
 save(torus.collect14, file = "./data/torus.collect14")
 torus.collect14.inted<-torus.collect14
 for (i in 1:length(torus.collect14)) {
-  inter.oricord<-voronoiInterpo(torus.collect14[[i]][["noizyX"]], 10)
+  inter.oricord<-voronoiInterpo(torus.collect14[[i]][["noizyX"]], 15)
   torus.collect14.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect14[[i]][["noizyX"]], inter.oricord)
   torus.collect14.inted[[i]][["nsample"]]<-nrow(torus.collect14[[i]][["noizyX"]])
 }
 save(torus.collect14.inted, file = "./data/torus.collect14.inted")
 torus14inted.aggr<-proposedMethodOnly(torus.collect14.inted, 2, 3, 10)
+
 save(torus14inted.aggr, file = "./data/torus14inted.aggr")
 
-torus14inted.dim1<-cyclenumber(torus14inted.aggr[[1]])
-torus14inted.dim2<-cyclenumber(torus14inted.aggr[[2]])
+torus14inted.dim1<-cyclenumber(torus14inted.aggr[[1]], compare=F)
+torus14inted.dim2<-cyclenumber(torus14inted.aggr[[2]], compare=F)
 
 figurePlot(torus.collect14[[1]][["noizyX"]])
-inter14.1.oricord<-voronoiInterpo(torus.collect14[[1]][["noizyX"]], 10)
+inter14.1.oricord<-voronoiInterpo(torus.collect14[[1]][["noizyX"]], 15)
 points3d(inter14.1.oricord, col="orange")
+figurePlot(torus.collect14.inted[[10]][["noizyX"]])
+
+torus14inted1.diag<-ripsDiag(torus.collect14.inted[[1]][["noizyX"]], 2, 3, printProgress = T)
+plot(torus14inted1.diag[[1]])
+
+torus14.aggr<-proposedMethodOnly(torus.collect14, 2, 3, 10)
+torus14.dim1<-cyclenumber(torus14.aggr[[1]], compare=F)
+torus14.dim2<-cyclenumber(torus14.aggr[[2]], compare=F)
