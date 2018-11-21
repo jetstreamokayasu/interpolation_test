@@ -10,7 +10,7 @@ require(ggmap)
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
 
-rgl.snapshot("./data/torus_300_1.png")
+rgl.snapshot("./data/torus_300_0.png")
 
 torus.300.dist<-distance(torus.300)
 
@@ -19,7 +19,7 @@ torus.300.dist<-distance(torus.300)
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
-rgl.snapshot("./data/torus_300.png")
+rgl.snapshot("./data/torus_300_1.png")
 torus.vic1.line<-line.vics(1, torus.vic1)
 
 vics.pca<-prcomp(torus.300[torus.vic1.line,])
@@ -174,13 +174,18 @@ points(ranpoint2[1], ranpoint2[2], pch=13, col=4)
 ranpoint3<-randomPointVoronoi(tiles[[3]])
 points(ranpoint3[1], ranpoint3[2], pch=13, col=4)
 
+cenpoint1s<-t(sapply(c(1,neibor1), function(k)centerVoronoi(tiles[[k]])))
+points(cenpoint1s[,1], cenpoint1s[,2], pch=16, col=2)
+
 
 voron.oricord<-voronoiProcess(torus.vic1.line, torus.300)
 points3d(voron.oricord, col=2)
+rgl.snapshot("./data/torus_300_intered_voro.png")
 
 figurePlot(torus.300)
 in.oricord.vo<-voronoiInterpo(torus.300, 10)
 points3d(in.oricord.vo, col=2)
+rgl.snapshot("./data/torus_300_intered_all.png")
 
 #データ点17の近傍で実験
 torus.vic17<-get.vicinity(torus.dist, 17, 15)
@@ -201,3 +206,67 @@ for(i in 1:(length(neibor17)+1)){
 
 voron17.oricord<-voronoiProcess(torus.vic17.line, torus.300)
 points3d(voron17.oricord, col=2)
+
+#ボロノイ補間がうまくいくか試す用のトーラス状データセット
+torus.collect14 <- lapply(1:100, function(i){
+  nsample <- 300
+  #var <- runif(1, var.min, var.max)
+  #noize.torus <- matrix(rnorm(nsample * 3, 0, var), nrow = nsample)
+  torus <- torusUnif(nsample, 1, 2.5)
+  return(list(nsample = nsample, noizyX = torus, diag = 0))
+})
+save(torus.collect14, file = "./data/torus.collect14")
+torus.collect14.inted<-torus.collect14
+for (i in 1:length(torus.collect14)) {
+  inter.oricord<-voronoiInterpo(torus.collect14[[i]][["noizyX"]], 15)
+  torus.collect14.inted[[i]][["noizyX"]]<-conbineInterOrigin(torus.collect14[[i]][["noizyX"]], inter.oricord)
+  torus.collect14.inted[[i]][["nsample"]]<-nrow(torus.collect14[[i]][["noizyX"]])
+}
+save(torus.collect14.inted, file = "./data/torus.collect14.inted")
+torus14inted.aggr<-proposedMethodOnly(torus.collect14.inted, 2, 3, 10)
+
+save(torus14inted.aggr, file = "./data/torus14inted.aggr")
+
+torus14inted.dim1<-cyclenumber(torus14inted.aggr[[1]], compare=F)
+torus14inted.dim2<-cyclenumber(torus14inted.aggr[[2]], compare=F)
+
+figurePlot(torus.collect14[[1]][["noizyX"]])
+inter14.1.oricord<-voronoiInterpo(torus.collect14[[1]][["noizyX"]], 15)
+points3d(inter14.1.oricord, col="orange")
+figurePlot(torus.collect14.inted[[10]][["noizyX"]])
+
+torus14inted1.diag<-ripsDiag(torus.collect14.inted[[1]][["noizyX"]], 2, 3, printProgress = T)
+plot(torus14inted1.diag[[1]])
+
+torus14.aggr<-proposedMethodOnly(torus.collect14, 2, 3, 10)
+torus14.dim1<-cyclenumber(torus14.aggr[[1]], compare=F)
+torus14.dim2<-cyclenumber(torus14.aggr[[2]], compare=F)
+
+torus500<-torusUnif(500, 1, 2.5)
+torus200<-torusUnif(200, 1, 2.5)
+figurePlot(torus.300)
+figurePlot(torus500)
+figurePlot(torus200)
+
+sucrate.temp<-list(data200=c(0.07, 0.09, 0.1, 0, 0.01),
+                   data250=c(0.15, 0.12, 0.17, 0.13, 0.16),
+                   data300=c(0.3, 0.2, 0.17, 0.34, 0.27),
+                   data350=c(0.8, 0.85, 0.86, 0.9, 0.84),
+                   data400=c(0.9, 0.89, 0.86, 0.93, 0.87),
+                   data450=c(0.9, 0.89, 0.86, 0.93, 0.91),
+                   data500=c(0.91, 0.89, 0.9, 0.97, 0.88))
+
+boxplot(sucrate.temp, names=seq(200, 500, by=50), xlab="Data Point", ylab="Success Rate")
+
+suctemp.mean<-sapply(sucrate.temp, function(rate)mean(rate))
+lines(seq(200, 500, by=50), suctemp.mean)
+par(new=T)
+plot(seq(200, 500, by=50), suctemp.mean, type = "l")
+suctemean.smoth<-smooth.spline(seq(200, 500, by=50), suctemp.mean)
+lines(suctemean.smoth$x, suctemean.smoth$y)
+plot(suctemean.smoth$x, suctemean.smoth$y, type = "n",ann = F)
+plot(suctemean.smoth$x, suctemean.smoth$y, type = "l",ann = F)
+
+sucrate.temp %>% bind_cols() %>% gather(data, value) %>% ggplot(aes(data, value)) + geom_violin() + geom_point()
+
+sucrate.temp %>% bind_cols() %>% gather(data, value) %>% mutate(data = as.factor(data) %>% as.numeric) %>% ggplot(aes(data, value)) + geom_smooth() + geom_point()
