@@ -3,7 +3,7 @@ require(phacm)
 anu<-anulusUnif(100, 1, 1.5)
 plot3d(anu)
 anu2<-anulusUnif(100)
-plot(anu2)
+plot(anu2, pch=16, cex=1.7)
 plot(anu)
 
 anu.diag<-compute_pd(anu, 1, 2)

@@ -6,6 +6,7 @@ require(ggplot2)
 require(plyr)
 require(reshape2)
 require(ggmap)
+require(tidyverse)
 
 torus.300<-torusUnif(300, 1, 2.5)
 figurePlot(torus.300)
@@ -19,7 +20,7 @@ torus.300.dist<-distance(torus.300)
 torus.vic1<-get.vicinity(torus.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
-rgl.snapshot("./data/torus_300_1.png")
+rgl.snapshot("./data/torus_300_1_2.png")
 torus.vic1.line<-line.vics(1, torus.vic1)
 
 vics.pca<-prcomp(torus.300[torus.vic1.line,])
@@ -139,22 +140,27 @@ pre_thresh<-meanVicsDestance(sphere.400, 15)
 torus300.inter<-meanInterPolation(torus.300, 2)
 figurePlot(torus.300)
 points3d(torus300.inter, col="orange")
+rgl.snapshot("./data/torus_300.png")
 
 #ボロノイ図試し
-plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16)
+plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16, cex=2)
 res1<-deldir(vics.pca$x[,1], vics.pca$x[,2])
 tiles <- tile.list(res1)
 plot(range(vics.pca[["x"]][,1]),range(vics.pca[["x"]][,2]),type="n")
-for(i in 1:res1$n.data){	polygon(tiles[[i]]) }
+for(i in 1:res1$n.data){	polygon(tiles[[i]], lwd=2) }
 points(vics.pca[["x"]][,1:2], col=3, pch=16)
 points(vics.pca[["x"]][1,1], vics.pca[["x"]][1,2], col=2, pch=16)
 #text(d$longitude,d$latitude+0.0005,d$id,col=as.numeric(d$type)+1)
-points(tiles[[1]][["x"]], tiles[[1]][["y"]], pch=15, col=2)
+points(tiles[[1]][["x"]], tiles[[1]][["y"]], pch=16, col=2, cex=2)
 text(tiles[[1]][["x"]], tiles[[1]][["y"]], c(1:length(tiles[[1]][["x"]])))
 points(tiles[[1]][["x"]], tiles[[1]][["y"]], pch=15, col=2)
 points(vics.pca[["x"]][6,1], vics.pca[["x"]][6,2], col=5, pch=17)
 points(tiles[[6]][["x"]], tiles[[6]][["y"]], pch=15, col=2)
 text(tiles[[3]][["x"]], tiles[[3]][["y"]], c(1:length(tiles[[3]][["x"]])))
+
+voron.oricord_B<-voronoiBorder(torus.vic1.line, torus.300)
+points3d(voron.oricord_B, col=2)
+rgl.snapshot("./data/torus_300_intered_voro.png")
 
 #ボロノイ領域内にランダムに点を打つ
 set.seed(100)
@@ -193,7 +199,7 @@ rgl.snapshot("./data/torus_300_intered_voro.png")
 
 figurePlot(torus.300)
 in.oricord.vo<-voronoiInterpo(torus.300, 15)
-points3d(in.oricord.vo, col="orange")
+points3d(in.oricord.vo, col="red")
 rgl.snapshot("./data/torus_300_intered_all.png")
 
 in.oricord.vo10<-voronoiInterpo(torus.300, 10)
