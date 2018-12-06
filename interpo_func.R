@@ -540,7 +540,8 @@ voronoiInterpo<-function(figure, nvics){
       
       element[vics.line]<-element[vics.line]+1
       
-      vics.oricord<-voronoiProcess(vics.line, figure)
+      #vics.oricord<-voronoiProcess(vics.line, figure)
+      vics.oricord<-voronoiBorder(vics.line, figure)
       
       if(i==1){oricord<-vics.oricord}
       else{oricord<-rbind(oricord, vics.oricord)}
@@ -595,5 +596,23 @@ centerVoronoi<-function(tile){
   cen.y<-mean(tile[["y"]])
   
   return(c(cen.x, cen.y))
+  
+}
+
+voronoiBorder<-function(vics.line, figure){
+  
+  require(deldir)
+  
+  vics.pca<-prcomp(figure[vics.line,])
+  
+  res<-deldir(vics.pca$x[,1], vics.pca$x[,2])
+  
+  tiles<-tile.list(res)
+
+  insecs<-cbind(tiles[[1]][["x"]], tiles[[1]][["y"]])
+  
+  vics.oricord<-originCoodinate(vics.pca, insecs)
+  
+  return(vics.oricord)
   
 }

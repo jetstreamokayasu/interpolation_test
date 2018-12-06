@@ -54,6 +54,13 @@ vic17s.pca<-prcomp(torus.300[torus.vic17.line,])
 plot(vic17s.pca[["x"]][,1], vic17s.pca[["x"]][,2], col=3, pch=16)
 gridLine(vic17s.pca[["x"]], 4)
 
+res17<-deldir(vic17s.pca$x[,1], vic17s.pca$x[,2])
+tile17s <- tile.list(res17)
+plot(range(vic17s.pca[["x"]][,1]),range(vic17s.pca[["x"]][,2]),type="n")
+for(i in 1:res17$n.data){	polygon(tile17s[[i]]) }
+points(vic17s.pca[["x"]][1,1], vic17s.pca[["x"]][1,2], col=2, pch=16)
+points(tile17s[[1]][["x"]], tile17s[[1]][["y"]], col=4, pch=16)
+
 torus.vic17s.pic<-pixelConvert(vic17s.pca[["x"]], 4)
 
 torus.vic17s.cppic<-insertElement(torus.vic17s.pic)
@@ -64,6 +71,8 @@ points(torus.vic17s.incord, col=2, pch=16)
 torus.vic17s.oricord<-originCoodinate(vic17s.pca, torus.vic17s.incord)
 points3d(torus.vic17s.oricord, col=2)
 
+vic17s.oricord<-voronoiBorder(torus.vic17.line, torus.300)
+points3d(vic17s.oricord, col=2)
 
 torus.vic210<-get.vicinity(torus.dist, 210, 15)
 torus.vic210.line<-line.vics(210, torus.vic210)
@@ -183,9 +192,12 @@ points3d(voron.oricord, col=2)
 rgl.snapshot("./data/torus_300_intered_voro.png")
 
 figurePlot(torus.300)
-in.oricord.vo<-voronoiInterpo(torus.300, 10)
-points3d(in.oricord.vo, col=2)
+in.oricord.vo<-voronoiInterpo(torus.300, 15)
+points3d(in.oricord.vo, col="orange")
 rgl.snapshot("./data/torus_300_intered_all.png")
+
+in.oricord.vo10<-voronoiInterpo(torus.300, 10)
+points3d(in.oricord.vo10, col="orange")
 
 #データ点17の近傍で実験
 torus.vic17<-get.vicinity(torus.dist, 17, 15)

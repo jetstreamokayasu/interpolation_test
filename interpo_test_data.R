@@ -1,4 +1,5 @@
 library(ade4)
+require(lle)
 data(rpjdl)
 coa1 <- dudi.coa(rpjdl$fau, scannf = FALSE, nf = 4)
 s.hist(coa1$li)
@@ -22,3 +23,12 @@ vic1s.potential<-calcPotential(vics.pca[["x"]][,1:2], x, y)
 image(x, y, vic1s.potential, col = terrain.colors(100))
 persp(x, y, vic1s.potential, theta = 30, phi = 30, expand = 0.5, col = heat.colors(100), border=NA)
 contour(x, y, vic1s.potential, method = "edge", vfont = c("sans serif", "plain"))
+
+
+#LLEを使ってみる
+kneibor<-calc_k(torus.300, 2)
+torus300.vic1<-get.vicinity(torus.300.dist, 1, 10)
+vic1s.line<-line.vics(1, torus300.vic1)
+torus300.vic1s<-lle(torus.300[vic1s.line, ], 2, 10)
+plot(torus300.vic1s[["Y"]])
+figurePlot.coloredVic(torus.300, torus300.vic1, 1)
