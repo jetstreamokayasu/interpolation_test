@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 data/
-.Rproj.user/
+#.Rproj.user/
 /.Rproj.user/
 
 .Rproj.user
