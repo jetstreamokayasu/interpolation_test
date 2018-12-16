@@ -1,6 +1,8 @@
 require(TDA)
 require(myfs)
 require(rgl)
+require(phacm)
+require(pracma)
 require(deldir)
 require(ggplot2)
 require(plyr)
@@ -288,3 +290,14 @@ plot(suctemean.smoth$x, suctemean.smoth$y, type = "l",ann = F)
 sucrate.temp %>% bind_cols() %>% gather(data, value) %>% ggplot(aes(data, value)) + geom_violin() + geom_point()
 
 sucrate.temp %>% bind_cols() %>% gather(data, value) %>% mutate(data = as.factor(data) %>% as.numeric) %>% ggplot(aes(data, value)) + geom_smooth() + geom_point()
+
+#誤差が何%か調べる
+trs15.300insub1_er1<-errorTorus(1, 2.5, 300, torus15.300insub1[[1]][["noizyX"]])
+
+trs15.300insub1_er<-lapply(1:100, function(k)errorTorus(1, 2.5, 300, torus15.300insub1[[k]][["noizyX"]]))
+save(trs15.300insub1_er, file="./data/trs15_300insub1_er.RData")
+
+boxplot(trs15.300insub1_er[1:50], ylab="Error Rate (%)", xlab="Data Set", cex.axis=1.4, cex.lab=1.6)
+boxplot(trs15.300insub1_er[1:50], ylim=c(0,100), ylab="Error Rate (%)", xlab="Data Set", cex.axis=1.4, cex.lab=1.6)
+
+trs15.300insub1_er3<-errorTorus(1, 2.5, 300, torus15.300insub1[[3]][["noizyX"]])

@@ -616,3 +616,60 @@ voronoiBorder<-function(vics.line, figure){
   return(vics.oricord)
   
 }
+
+#補間した点の誤差を求める
+#求まっていない。要修正
+errorTorus<-function(r, R, ori, intered){
+  
+ errors<-sapply((ori+1):length(intered[,1]), function(k){
+   if(abs(intered[k,3])>r){
+     
+     return(abs(r-abs(intered[k,3]))/r)
+     #cat(k, "=", 1, "\n")
+     }
+   else{
+     
+     sqxyR<-(sqrt(intered[k,1]^2+intered[k,2]^2)-R)^2
+     
+     if(sqxyR>r^2){
+       
+       error<-abs(r-sqxyR)/r 
+       #cat(k, "=", 2, "\n")
+       return(error)
+       
+       }
+     
+     else{
+       
+       truth.z<-sqrt(r^2-sqxyR)
+       #print(sqxyR)
+       error<-(abs(truth.z-abs(intered[k,3])))/(truth.z)
+       
+       #debugText(intered[k,3], truth.z, error)
+       #cat(k, "=", 3, "\n")
+       
+       return(error)
+       
+     }
+     
+   }
+   
+ })
+ 
+ return(errors*100)
+  
+}
+
+#PCAで求まった基底によって張られた平面の方程式の係数を求める
+#centrは元の多様体(figure)の近傍ｋ点の中心点。元の多様体の何番目の点かで指定
+confirmPlane<-function(rpca){
+  
+  cros<-pracma::cross(rpca[["rotation"]][,1], rpca[["rotation"]][,2])
+  
+  seg<-originCoodinate(rpca, t(as.matrix(rpca[["x"]][1, 1:2])))
+  
+  coefs<-c(cros, -sum(cros*seg))
+  
+  return(coefs)
+  
+}

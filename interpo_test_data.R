@@ -32,3 +32,22 @@ vic1s.line<-line.vics(1, torus300.vic1)
 torus300.vic1s<-lle(torus.300[vic1s.line, ], 2, 10)
 plot(torus300.vic1s[["Y"]])
 figurePlot.coloredVic(torus.300, torus300.vic1, 1)
+
+#save2File関数試し
+#現在失敗中
+save2File(torus.300, dir="./")
+
+#PCAで貼られた面を表示
+torus1.coefs<-confirmPlane(vics.pca)
+figurePlot.coloredVic(torus.300, torus.vic1, 1)
+plot3d(torus.300[-torus.vic1.line, ], size=4)
+aspect3d("iso")
+planes3d(torus1.coefs[1], torus1.coefs[2], torus1.coefs[3], torus1.coefs[4], col="blue", alpha=0.5)
+points3d(torus.300[torus.vic1.line, ], col=3, size=4)
+points3d(torus.vics1.oricord, col=2)
+rgl.snapshot("./torus_300_1_plane.png")
+
+figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
+torus17.coefs<-confirmPlane(vic17s.pca)
+planes3d(torus17.coefs[1], torus17.coefs[2], torus17.coefs[3], torus17.coefs[4], col="blue", alpha=0.5)
+points3d(torus.vic17s.oricord, col=2)
