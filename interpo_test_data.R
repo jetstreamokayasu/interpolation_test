@@ -46,6 +46,7 @@ planes3d(torus1.coefs[1], torus1.coefs[2], torus1.coefs[3], torus1.coefs[4], col
 points3d(torus.300[torus.vic1.line, ], col=3, size=4)
 points3d(torus.vics1.oricord, col=2)
 rgl.snapshot("./torus_300_1_plane.png")
+rgl.snapshot("./torus_300_1_plane.eps")
 
 figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
 torus17.coefs<-confirmPlane(vic17s.pca)
