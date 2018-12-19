@@ -614,7 +614,7 @@ voronoiInterpo<-function(figure, nvics){
       element[vics.line]<-element[vics.line]+1
       
       #vics.oricord<-voronoiProcess(vics.line, figure)
-      vics.oricord<-voronoiBorder(vics.line, figure)
+      vics.oricord<-voronoiBorder(vics.line, figure)[[1]]
       
       if(i==1){oricord<-vics.oricord}
       else{oricord<-rbind(oricord, vics.oricord)}
