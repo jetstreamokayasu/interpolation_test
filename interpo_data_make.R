@@ -176,7 +176,7 @@ sides<-sapply(cross.mem, function(k)vertex.side(tiles[[1]], k))
 cross1.side<-sidesSet(sides)
 hline<-matrix(c(ranx, rany, max(tiles[[1]][["x"]][which(tiles[[1]][["x"]]>=ranx)]), rany), 2, 2, byrow=T)
 ncross1<-crossCheck(tiles[[1]], hline, t(cross1.side))
-ncross1.1<-crossCheck(tiles[[1]], hline, sides)
+#ncross1.1<-crossCheck(tiles[[1]], hline, sides)
 
 ranpoint1<-randomPointVoronoi(tiles[[1]])
 points(ranpoint1[1], ranpoint1[2], pch=13, col=4)

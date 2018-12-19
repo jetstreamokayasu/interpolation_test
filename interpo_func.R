@@ -374,6 +374,83 @@ vertex.side<-function(tile, vertex){
   
 }
 
+#凸包内のある頂点を含む辺を出力
+convex_hull_vertx<-function(chul, vertx){
+  
+  
+  vert.set<-c(chul[length(chul)], chul, chul[1])
+  
+  #debugText(vert.set, which(chul==vertx))
+  
+  sides<-matrix(0, 2, 2)
+  sides[1,]<-which(chul==vertx) %>% '+'(., c(0, 1)) %>%   vert.set[.]
+  sides[2,]<-which(chul==vertx) %>% '+'(., c(1, 2)) %>%   vert.set[.]
+  
+  return(sides)
+  
+}
+
+#PCAで写された点が作る凸包内に補間点があるか判定
+convex_hull_check<-function(rpca, hline, sides){
+  
+  t1<-sapply(sides[,1], function(side){
+    
+    return((hline[1,1]-hline[2,1])*(rpca[["x"]][side, 2]-hline[1,2]))
+    
+  })
+  
+  t2<-sapply(sides[,2], function(side){
+    
+    return((hline[1,1]-hline[2,1])*(rpca[["x"]][side, 2]-hline[1,2]))
+    
+  })
+  
+  
+  t3<-sapply(1:nrow(sides), function(k){
+    
+    return((rpca[["x"]][sides[k,1], 1]-rpca[["x"]][sides[k,2], 1])*(hline[1,2]-rpca[["x"]][sides[k,1], 2])+(rpca[["x"]][sides[k,1], 2]-rpca[["x"]][sides[k,2], 2])*(rpca[["x"]][sides[k,1], 1]-hline[1,1]))
+    
+  })
+  
+  
+  t4<-sapply(1:nrow(sides), function(k){
+    
+    return((rpca[["x"]][sides[k,1], 1]-rpca[["x"]][sides[k,2], 1])*(hline[2,2]-rpca[["x"]][sides[k,1], 2])+(rpca[["x"]][sides[k,1], 2]-rpca[["x"]][sides[k,2], 2])*(rpca[["x"]][sides[k,1], 1]-hline[2,1]))
+    
+  })
+  
+  #debugText(t1, t2, t3, t4)
+  # debugText((t1*t2)<0)
+  # debugText((t3*t4)<0)
+  #ncross<-length(which((t1*t2)<0))
+  ncross<-((t1*t2)<0 & (t3*t4)<0)
+  
+  return(ncross)
+  
+}
+
+#渡された点は凸包内にあるか判定
+exist_convexhull_check<-function(rpca, insecs){
+  
+  chul<-chull(rpca[["x"]][,1:2])
+  
+  exist<-sapply(1:nrow(insecs), function(i){
+    cross.side<-chul[which(rpca[["x"]][chul,1]>=insecs[i,1])] %>% 
+                sapply(., function(k)convex_hull_vertx(chul, k)) %>% 
+                sidesSet(.)
+    hline<-matrix(c(insecs[i,], max(rpca[["x"]][chul,1][which(rpca[["x"]][chul,1]>=insecs[i,1])]), insecs[i,2]), 2, 2, byrow=T)
+    #debugText(hline)
+    c.ncross<-convex_hull_check(rpca, hline, t(cross.side))
+    #debugText(c.ncross)
+    if(length(which(c.ncross==T)) %% 2 != 0){return(T)}
+    else{return(F)}
+    
+  })
+  
+  return(exist)
+  
+}
+
 #交差判定を行う辺の頂点集合を作成
 # vertexSet<-function(tile, sides){
 #   
@@ -432,6 +509,7 @@ sidesSet<-function(sides){
   
 }
 
+#ボロノイ領域内に点があるか調べる
 crossCheck<-function(tile, hline, sides){
   
   t1<-sapply(sides[,1], function(side){
@@ -456,11 +534,6 @@ crossCheck<-function(tile, hline, sides){
     
   })
   
-  t3<-sapply(1:nrow(sides), function(k){
-    
-    return((tile[["x"]][sides[k,1]]-tile[["x"]][sides[k,2]])*(hline[1,2]-tile[["y"]][sides[k,1]])+(tile[["y"]][sides[k,1]]-tile[["y"]][sides[k,2]])*(tile[["x"]][sides[k,1]]-hline[1,1]))
-    
-  })
   
   t4<-sapply(1:nrow(sides), function(k){
     
@@ -541,7 +614,7 @@ voronoiInterpo<-function(figure, nvics){
       element[vics.line]<-element[vics.line]+1
       
       #vics.oricord<-voronoiProcess(vics.line, figure)
-      vics.oricord<-voronoiBorder(vics.line, figure)
+      vics.oricord<-voronoiBorder(vics.line, figure)[[1]]
       
       if(i==1){oricord<-vics.oricord}
       else{oricord<-rbind(oricord, vics.oricord)}
@@ -590,6 +663,7 @@ voronoiProcess<-function(vics.line, figure){
   
 }
 
+#ボロノイ領域の中心に点を打つ
 centerVoronoi<-function(tile){
   
   cen.x<-mean(tile[["x"]])
@@ -599,6 +673,8 @@ centerVoronoi<-function(tile){
   
 }
 
+#ボロノイ領域の頂点に点を打つ
+#PCAで写された点による凸包内に入っていない点は除く
 voronoiBorder<-function(vics.line, figure){
   
   require(deldir)
@@ -611,9 +687,11 @@ voronoiBorder<-function(vics.line, figure){
 
   insecs<-cbind(tiles[[1]][["x"]], tiles[[1]][["y"]])
   
-  vics.oricord<-originCoodinate(vics.pca, insecs)
+  exist<-exist_convexhull_check(vics.pca, insecs)
   
-  return(vics.oricord)
+  vics.oricord<-originCoodinate(vics.pca, insecs[which(exist==T), ])
+  
+  return(list(oricord=vics.oricord, pca.inter=insecs[which(exist==T), ]))
   
 }
 
