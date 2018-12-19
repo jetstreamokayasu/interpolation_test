@@ -52,3 +52,41 @@ figurePlot.coloredVic(torus.300, torus.vic17, centr = 17)
 torus17.coefs<-confirmPlane(vic17s.pca)
 planes3d(torus17.coefs[1], torus17.coefs[2], torus17.coefs[3], torus17.coefs[4], col="blue", alpha=0.5)
 points3d(torus.vic17s.oricord, col=2)
+
+
+#PCAで写された点で作る凸包内に補間点が有るかどうかを判定
+plot(vics.pca[["x"]][,1], vics.pca[["x"]][,2], col=3, pch=16, cex=2)
+res1<-deldir(vics.pca$x[,1], vics.pca$x[,2])
+tiles <- tile.list(res1)
+plot(range(vics.pca[["x"]][,1]),range(vics.pca[["x"]][,2]),type="n")
+for(i in 1:res1$n.data){	polygon(tiles[[i]], lwd=2) }
+points(vics.pca[["x"]][1,1], vics.pca[["x"]][1,2], col=2, pch=16)
+chul<-chull(vics.pca[["x"]][,1:2])
+polygon(vics.pca[["x"]][chul,1:2])
+text(vics.pca[["x"]][chul,1], vics.pca[["x"]][chul,2], chul)
+
+tst.x<--0.5
+tst.y<-0.5
+points(tst.x, tst.y, pch=13, col=4)
+cross.mem<-chul[which(vics.pca[["x"]][chul,1]>=tst.x)]
+sides1<-convex_hull_vertx(chul, 16)
+sides<-sapply(cross.mem, function(k)convex_hull_vertx(chul, k))
+cross1.side<-sidesSet(sides)
+hline<-matrix(c(tst.x, tst.y, max(vics.pca[["x"]][chul,1][which(vics.pca[["x"]][chul,1]>=tst.x)]), tst.y), 2, 2, byrow=T)
+c.ncross1<-convex_hull_check(vics.pca, hline, t(cross1.side))
+
+p <- ggplot(vics.pca[["x"]][,1:2]) +   geom_point()
+
+exist1<-exist_convexhull_check(vics.pca, t(as.matrix(c(tst.x, tst.y))))
+tstxy<-matrix(c(-0.5, 0.5, 0.5, -0.5), 2,2, byrow = T)
+exist1a<-exist_convexhull_check(vics.pca, tstxy)
+
+voron.oricord_B<-voronoiBorder(torus.vic1.line, torus.300)
+points(voron.oricord_B[[2]], pch=16, col=2)
+points3d(voron.oricord_B, col=2)
+
+#17点の近傍で試し
+voron.oricord_17<-voronoiBorder(torus.vic17.line, torus.300)
+points(voron.oricord_17[[2]], pch=16, col=2)
+points(tile17s[[1]][["x"]], tile17s[[1]][["y"]], pch=16, col=2, cex=2)
+points3d(voron.oricord_17[[1]], col=2)
