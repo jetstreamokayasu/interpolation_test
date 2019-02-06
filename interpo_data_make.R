@@ -19,10 +19,11 @@ torus.300.dist<-distance(torus.300)
 
 
 #データ点1の近傍で実験
-torus.vic1<-get.vicinity(torus.dist, 1, 15)
+torus.vic1<-get.vicinity(torus.300.dist, 1, 15)
 
 figurePlot.coloredVic(torus.300, torus.vic1, 1)
 rgl.snapshot("./data/torus_300_1_2.png")
+rgl.postscript("./data/torus_300_vic1.eps", fmt = "eps")
 torus.vic1.line<-line.vics(1, torus.vic1)
 
 vics.pca<-prcomp(torus.300[torus.vic1.line,])
@@ -161,8 +162,9 @@ points(tiles[[6]][["x"]], tiles[[6]][["y"]], pch=15, col=2)
 text(tiles[[3]][["x"]], tiles[[3]][["y"]], c(1:length(tiles[[3]][["x"]])))
 
 voron.oricord_B<-voronoiBorder(torus.vic1.line, torus.300)
-points3d(voron.oricord_B, col=2)
+points3d(voron.oricord_B[[1]], col=2)
 rgl.snapshot("./data/torus_300_intered_voro.png")
+rgl.postscript("./data/torus_in300_vic1.eps", fmt = "eps")
 
 #ボロノイ領域内にランダムに点を打つ
 set.seed(100)
@@ -301,3 +303,22 @@ boxplot(trs15.300insub1_er[1:50], ylab="Error Rate (%)", xlab="Data Set", cex.ax
 boxplot(trs15.300insub1_er[1:50], ylim=c(0,100), ylab="Error Rate (%)", xlab="Data Set", cex.axis=1.4, cex.lab=1.6)
 
 trs15.300insub1_er3<-errorTorus(1, 2.5, 300, torus15.300insub1[[3]][["noizyX"]])
+
+#卒論グラフ用の画像作成
+torus.vic20<-get.vicinity(torus.300.dist, 20, 15)
+figurePlot.coloredVic(torus.300, torus.vic20, 20)
+rgl.postscript("./data/torus_300_vic20.eps", fmt = "eps")
+
+torus.vic20.line<-line.vics(20, torus.vic20)
+vic20s.pca<-prcomp(torus.300[torus.vic20.line,])
+plot(vic20s.pca[["x"]][,1], vic20s.pca[["x"]][,2], col=3, pch=16, cex=2)
+
+res20<-deldir(vic20s.pca$x[,1], vic20s.pca$x[,2])
+tile20s <- tile.list(res20)
+#plot(range(vics.pca[["x"]][,1]),range(vics.pca[["x"]][,2]),type="n")
+for(i in 1:res20$n.data){	polygon(tile20s[[i]], lwd=2) }
+points(tile20s[[1]][["x"]], tile20s[[1]][["y"]], pch=16, col=2, cex=2)
+
+voron.oricordB_20<-voronoiBorder(torus.vic20.line, torus.300)
+points3d(voron.oricordB_20[[1]], col=2)
+rgl.postscript("./data/torus_in300_vic20.eps", fmt = "eps")
