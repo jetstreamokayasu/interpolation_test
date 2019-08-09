@@ -139,6 +139,8 @@ originCoodinate<-function(rpca, incord){
   eigen01<-as.matrix(rpca$rotation[,1])
   eigen02<-as.matrix(rpca$rotation[,2])
   
+  debugText(incord)
+  
   oricord<-sapply(1:nrow(incord), function(l){
     
   return((incord[l, 1]*(eigen01)+incord[l, 2]*(eigen02))+rpca$center)
