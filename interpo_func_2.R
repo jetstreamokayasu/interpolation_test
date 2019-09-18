@@ -92,7 +92,7 @@ voronoiBorder2<-function(vics, figure, a){
 
 #補間手法を改良
 #ボロノイ領域の頂点にの中で、最も中心点より遠い頂点に補間
-
+#変更。中心点からの平均以上の点のみに補う
 #データのリスト全体を補間
 all_interpolate2<-function(collect, nvic){
   incollect<-collect
@@ -136,6 +136,7 @@ voronoi_interpo3<-function(figure, nvics){
 
 
 #ボロノイ領域の頂点にの中で、最も中心点より遠い頂点に補間
+#変更。中心点からの平均以上の点のみに補う
 #補間点の元の座標系の座標を返す
 voronoi_border3<-function(vics, figure){
   
@@ -149,10 +150,12 @@ voronoi_border3<-function(vics, figure){
   
   if(length(insecs[which(exist==T), ]) > 0){
     
-    idx<-rbind(vics_pca[["x"]][1,1:2], insecs[which(exist==T), ]) %>% dist() %>% 
-           as.matrix(.) %>% max.col(.)
+    vics_dist<-rbind(vics_pca[["x"]][1,1:2], insecs[which(exist==T), ]) %>% dist() %>% 
+           as.matrix(.) 
     
-    vics_oricord<-interpo3d:::origin_coordinate(vics_pca, insecs[which(exist==T)[idx[1]-1], ], figure[vics[1],])
+    idx<-which(vics_dist[2:nrow(vics_dist), 1] >= mean(vics_dist[2:nrow(vics_dist), 1]))
+    
+    vics_oricord<-interpo3d:::origin_coordinate(vics_pca, insecs[which(exist==T)[idx], ], figure[vics[1],])
     
     return(list(oricord=vics_oricord, pca_inter=insecs[which(exist==T), ]))
     
