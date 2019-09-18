@@ -60,7 +60,7 @@ voronoiBorder2<-function(vics, figure, a){
   
   insecs<-cbind(tiles[[1]][["x"]], tiles[[1]][["y"]])
   
-  exist<-exist_convexhull_check(vics.pca, insecs)
+  exist<-interpo3d:::exist_convexhull_check(vics.pca, insecs)
   
   if(length(insecs[which(exist==T), ]) > 0){
     
@@ -72,8 +72,7 @@ voronoiBorder2<-function(vics, figure, a){
     
     if((nrow(insecs2) >= a) && (a != 0)){
   
-    #vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T)[1:a], ], figure[vics[1],])
-    vics.oricord<-originCoodinate(vics.pca, insecs[which(exist==T)[1:a], ])
+    vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T)[1:a], ], vics.pca$center)
 
     #debugText(insecs[which(exist==T)[1:a], ])
     
@@ -81,11 +80,81 @@ voronoiBorder2<-function(vics, figure, a){
     
     }else{
       
-      vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T), ], figure[vics[1],])
+      vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T), ], vics.pca$center)
       
       return(list(oricord=vics.oricord, pca.inter=insecs[which(exist==T), ]))
       
     }
+    
+  }
+  
+}
+
+#補間手法を改良
+#ボロノイ領域の頂点にの中で、最も中心点より遠い頂点に補間
+
+#データのリスト全体を補間
+all_interpolate2<-function(collect, nvic){
+  incollect<-collect
+  for (l in 1:length(collect)) {
+    inter_oricord<-voronoi_interpo3(collect[[l]][[2]], nvic)
+    incollect[[l]][[2]]<-rbind(incollect[[l]][[2]], inter_oricord)
+    incollect[[l]][[1]]<-nrow(incollect[[l]][[2]])
+    cat("dataset", l, "has", incollect[[l]][[1]], "points\n")
+  }
+  
+  return(incollect)
+}
+
+#figureに近傍nvic個で補間
+voronoi_interpo3<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-dist(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get_vicinity(dist, i, nvics)
+      
+      element[vics]<-element[vics]+1
+      
+      vics_oricord<-voronoi_border3(vics, figure)[[1]]
+      
+      if(i==1){oricord<-vics_oricord}
+      else{oricord<-rbind(oricord, vics_oricord)}
+      
+    }
+    
+  }
+  
+  return(oricord)
+  
+}
+
+
+#ボロノイ領域の頂点にの中で、最も中心点より遠い頂点に補間
+#補間点の元の座標系の座標を返す
+voronoi_border3<-function(vics, figure){
+  
+  vics_pca<-stats::prcomp(figure[vics,])
+  
+  tiles<-deldir::deldir(vics_pca$x[,1], vics_pca$x[,2]) %>% deldir::tile.list(.)
+  
+  insecs<-cbind(tiles[[1]][["x"]], tiles[[1]][["y"]])
+  
+  exist<-interpo3d:::exist_convexhull_check(vics_pca, insecs)
+  
+  if(length(insecs[which(exist==T), ]) > 0){
+    
+    idx<-rbind(vics_pca[["x"]][1,1:2], insecs[which(exist==T), ]) %>% dist() %>% 
+           as.matrix(.) %>% max.col(.)
+    
+    vics_oricord<-interpo3d:::origin_coordinate(vics_pca, insecs[which(exist==T)[idx[1]-1], ], figure[vics[1],])
+    
+    return(list(oricord=vics_oricord, pca_inter=insecs[which(exist==T), ]))
     
   }
   

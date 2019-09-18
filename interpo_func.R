@@ -139,7 +139,7 @@ originCoodinate<-function(rpca, incord){
   eigen01<-as.matrix(rpca$rotation[,1])
   eigen02<-as.matrix(rpca$rotation[,2])
   
-  debugText(incord)
+  #debugText(incord)
   
   oricord<-sapply(1:nrow(incord), function(l){
     
@@ -475,7 +475,7 @@ exist_convexhull_check<-function(rpca, insecs){
 sidesSet<-function(sides){
   
   check.sides<-matrix(0, 2, ncol(sides)*2)
-  #debugText(ncol(sides))
+  debugText(ncol(sides))
   t<-1
   
   for (i in 1:ncol(sides)) {
