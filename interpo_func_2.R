@@ -1,5 +1,6 @@
 #補間を一括して行う関数
 #補間点数を変更できるように
+#中心点から遠い順に補う
 variable_interpo<-function(collect, nvics, a=0){
   incollect<-collect
   for (l in 1:length(collect)) {
@@ -15,6 +16,7 @@ variable_interpo<-function(collect, nvics, a=0){
 
 #ボロノイ領域の頂点に補間を一括処理
 #補間点数を変更できるように
+#中心点から遠い順に補う
 voronoiInterpo2<-function(figure, nvics, a){
   
   element<-rep(0, length = nrow(figure))
@@ -48,6 +50,7 @@ voronoiInterpo2<-function(figure, nvics, a){
 #ボロノイ領域の頂点に点を打つ
 #PCAで写された点による凸包内に入っていない点は除く
 #補間点数を変更できるように
+#中心点から遠い順に補う
 voronoiBorder2<-function(vics, figure, a){
   
   require(deldir)
@@ -68,11 +71,16 @@ voronoiBorder2<-function(vics, figure, a){
     
     if(!is.matrix(insecs2)){insecs2<-t(as.matrix(insecs2))}
     
-    #debugText(nrow(insecs2), a)
+    vics_dist<-rbind(vics.pca[["x"]][1,1:2], insecs2) %>% dist() %>% 
+      as.matrix(.) 
+    
+    idx<-order(-vics_dist[-1, 1])
+    
+    debugText(vics_dist[-1, 1], idx, nrow(insecs2))
     
     if((nrow(insecs2) >= a) && (a != 0)){
   
-    vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T)[1:a], ], vics.pca$center)
+    vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs2[idx[1:a], ], figure[vics[1],])
 
     #debugText(insecs[which(exist==T)[1:a], ])
     
@@ -80,7 +88,7 @@ voronoiBorder2<-function(vics, figure, a){
     
     }else{
       
-      vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T), ], vics.pca$center)
+      vics.oricord<-interpo3d:::origin_coordinate(vics.pca, insecs[which(exist==T), ], figure[vics[1],])
       
       return(list(oricord=vics.oricord, pca.inter=insecs[which(exist==T), ]))
       
@@ -162,3 +170,5 @@ voronoi_border3<-function(vics, figure){
   }
   
 }
+
+

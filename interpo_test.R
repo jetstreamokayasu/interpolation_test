@@ -55,3 +55,10 @@ points3d(trs300_inpo1, col=3)
 
 #最も遠い頂点に補うようにした関数を試す
 trs300_inps<-voronoi_interpo3(torus300, 15)
+
+#中心点から遠い順に補うようにした関数を試す
+trs300_inps2<-voronoiInterpo2(torus300, 15, 3)
+
+trs300_idx1_3rd<-order(-trs300_vertx1_dist2[-1, 1])
+trs300_inp1_2nd<-cbind(trs300_tiles1[[1]][["x"]][trs300_idx1_3rd[1:3]], trs300_tiles1[[1]][["y"]][trs300_idx1_3rd[1:3]])
+points(trs300_inp1_2nd, col=2, pch=16)
