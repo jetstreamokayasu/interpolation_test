@@ -76,7 +76,7 @@ voronoiBorder2<-function(vics, figure, a){
     
     idx<-order(-vics_dist[-1, 1])
     
-    debugText(vics_dist[-1, 1], idx, nrow(insecs2))
+    #debugText(vics_dist[-1, 1], idx, nrow(insecs2))
     
     if((nrow(insecs2) >= a) && (a != 0)){
   

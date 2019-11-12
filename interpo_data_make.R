@@ -11,7 +11,7 @@ require(ggmap)
 require(tidyverse)
 
 torus.300<-torusUnif(300, 1, 2.5)
-figurePlot(torus.300)
+figurePlot3d(torus.300)
 
 rgl.snapshot("./data/torus_300_0.png")
 
