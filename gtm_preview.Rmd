@@ -1,0 +1,25 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+torus300<-trs300_incolle_set1[[1]][["noizyX"]] %>%
+  dplyr::as_data_frame() %>% 
+  cbind(., c(rep(1, 300), rep(2, 589)))
+colnames(torus300)[4]<-"inter"
+plotly::plot_ly(torus300, x = ~x, y = ~y, z = ~z, size = 1, split= ~inter, width = 800, height=800) %>% 
+plotly::add_markers()
+```
+```{r}
+trs300_vic1s<-rbind(torus300[-trs300_vics1, ], torus300[trs300_vics1, ], inter_inv2) %>% 
+   dplyr::as_data_frame() %>% 
+  cbind(., c(rep(1, 300-31), rep(2, 31), rep(3, 31)))
+colnames(trs300_vic1s)[4]<-"inter"
+plotly::plot_ly(trs300_vic1s, x = ~x, y = ~y, z = ~z, size = 1, split= ~inter, width = 800, height=800) %>% 
+plotly::add_markers()
+```

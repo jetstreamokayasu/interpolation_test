@@ -171,4 +171,132 @@ voronoi_border3<-function(vics, figure){
   
 }
 
+#中心点のボロノイ領域に隣接するボロノイ領域を見つける
+neibor_voronoi<-function(tiles){
 
+  neib_tile<-lapply(tiles[2:length(tiles)], function(tile){
+    
+    equal<-tiles[[1]][["x"]] %in% tile[["x"]]
+
+    if(any(equal)){
+      
+      x_eq<-t(sapply(tiles[[1]][["x"]][equal], function(x){x==tile[["x"]]}))
+      y_eq<-sapply(1:length(tiles[[1]][["x"]][equal]), function(k){tile[["y"]][x_eq[k,]]==tiles[[1]][["y"]][equal][k]})
+
+      if(class(y_eq)=="list"){y_eq<-unlist(y_eq)}
+      
+      if(any(y_eq)){return(T)}else{return(F)}
+      
+    }
+    
+    else{return(F)}
+    
+  })
+  
+  return(neib_tile)
+  
+}
+
+
+#GTMを用いた補間
+#ボロノイ領域の頂点へ補間。データセットを与えて一括補間
+voronoi_gtm_interpo<-function(figure, nvics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  dist<-dist(figure)
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get_vicinity(dist, i, nvics)
+      
+      element[vics]<-element[vics]+1
+      
+      vics_oricord<-voronoi_vertex(vics, figure)
+      
+      if(i==1){oricord<-vics_oricord}
+      else{oricord<-rbind(oricord, vics_oricord)}
+      
+    }
+    
+  }
+  
+  #debugText(element)
+  
+  return(oricord)
+  
+}
+
+#GTMを用いた補間
+#ボロノイ領域の頂点へ補間。
+voronoi_vertex<-function(vics, figure, MapsizeRow=15, MapsizeColumn=15, RBFsizeRow=3, RBFsizeColumn=3, RBFVariance=1, Lambda = 0, NumOfTraining = 100){
+  
+  require(gtm)
+  
+  vics_pca<-stats::prcomp(figure[vics,])
+  
+  #GTMを用いた次元削減
+  X<-figure[vics,]
+  # (分散が0の変数を削除した後に) 1. オートスケーリング
+  Var0Variable <- which(apply(X,2,var) == 0)
+  if (length(Var0Variable) == 0) {
+    #print("分散が0の変数はありません")
+  } else {
+    sprintf("分散が0の変数が %d つありました", length(Var0Variable))
+    print( "変数:" )
+    print( Var0Variable )
+    print( "これらを削除します" )
+    X <- X[,-Var0Variable]
+  }
+  X <- scale(X, center = TRUE, scale = TRUE)
+  # 6. データ空間における分散の逆数βの初期値
+  # 7. 重みWの初期値
+  XGrid = gtm.rctg( MapsizeColumn, MapsizeRow)#写像先のグリッド
+  RBFGrid = gtm.rctg( RBFsizeColumn, RBFsizeRow)#基底関数のグリッド
+  RBFSetup = gtm.gbf( RBFGrid, RBFVariance^(1/2), XGrid)
+  InitnalWBeta = gtm.pci.beta( X, XGrid, RBFSetup)
+  #Beta = 0.01
+  Beta = InitnalWBeta$beta
+  # 9. GTMマップ作成
+  GTMResults = gtm.trn( X, RBFSetup, InitnalWBeta$W, Lambda, NumOfTraining, Beta, quiet = T)
+  # 10. 二次元のマップ上でサンプルの位置関係を確認
+  GTMDist = gtm.dist(X, RBFSetup %*% GTMResults$W)
+  GTMR = gtm.resp3(GTMDist, GTMResults$beta, ncol(X))$R
+  GTMMean = t(GTMR) %*% XGrid
+  
+  #次元削減後のボロノイ分割
+  res<-deldir(GTMMean[,1], GTMMean[,2])
+  tiles<-tile.list(res)
+  
+  #中心点のボロノイ領域に隣接するボロノイ領域を見つける
+  nei_vo<-neibor_voronoi(tiles)
+  nei_tile_list<-which(unlist(nei_vo)==T)+1
+  
+  nei_inter<-lapply(tiles[c(1, nei_tile_list)], function(tile){cbind(tile[["x"]], tile[["y"]])})
+  nei_interpo<-unique(do.call(rbind, nei_inter))
+  
+  RBF_inter = gtm.gbf(RBFGrid, RBFVariance^(1/2), nei_interpo)
+  inter_dist<-gtm.dist(X, RBF_inter %*% GTMResults$W)
+  inter_R = gtm.resp3(inter_dist, GTMResults$beta, ncol(X))$R
+  inter_mean = t(inter_R) %*% (RBF_inter %*% GTMResults$W)
+  inter_inv<-sapply(1:nrow(inter_mean), function(k){inter_mean[k, ] * attr(X, "scaled:scale") + attr(X, "scaled:center")})
+
+  return(t(inter_inv))
+  
+}
+
+#GTMを用いた補間
+#データセットのリストを一括補間
+gtm_interpolate<-function(collect, nvic){
+  incollect<-collect
+  for (l in 1:length(collect)) {
+    inter_oricord<-voronoi_gtm_interpo(collect[[l]][[2]], nvic)
+    incollect[[l]][[2]]<-rbind(incollect[[l]][[2]], inter_oricord)
+    incollect[[l]][[1]]<-nrow(incollect[[l]][[2]])
+    cat("dataset", l, "has", incollect[[l]][[1]], "points\n")
+  }
+  
+  return(incollect)
+}

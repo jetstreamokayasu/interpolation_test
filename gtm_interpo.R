@@ -76,6 +76,7 @@ par(pty = "m")
 #次元削減後のデータ点にラベルを付ける
 library(maptools)
 pointLabel(GTMMode[,1], GTMMode[,2], as.character(trs300_vics1))
+pointLabel(GTMMode[,1], GTMMode[,2], as.character(1:31))
 
 #逆写像を求める
 ori_GTMMean = t(GTMR) %*% (RBFSetup %*% GTMResults$W)
@@ -94,6 +95,7 @@ for(i in 1:trs300_res1$n.data){	polygon(trs300_tiles1[[i]], lwd=2) }
 
 trs300_vertx1<-cbind(trs300_tiles1[[1]][["x"]], trs300_tiles1[[1]][["y"]])
 points(trs300_tiles1[[1]][["x"]], trs300_tiles1[[1]][["y"]], pch=16, col=2, cex=1)
+pointLabel(trs300_tiles1[[1]][["x"]], trs300_tiles1[[1]][["y"]], as.character(1:31))
 
 RBF_inter = gtm.gbf( RBFGrid, RBFVariance^(1/2), cbind(trs300_tiles1[[1]][["x"]], trs300_tiles1[[1]][["y"]]))
 inter_dist<-gtm.dist(X, RBF_inter %*% GTMResults$W)
@@ -102,3 +104,46 @@ inter_mean = t(inter_R) %*% (RBF_inter %*% GTMResults$W)
 inter_inv<-sapply(1:nrow(inter_mean), function(k){inter_mean[k, ] * attr(X, "scaled:scale") + attr(X, "scaled:center")})
 inter_inv<-t(inter_inv)
 points3d(inter_inv, col=4)
+
+
+#中心点のボロノイ領域に隣接するボロノイ領域を見つける
+equal<-trs300_tiles1[[1]][["x"]] %in% trs300_tiles1[[2]][["x"]]
+x_eq<-t(sapply(trs300_tiles1[[1]][["x"]][equal], function(x){x==trs300_tiles1[[2]][["x"]]}))
+y_eq<-sapply(1:length(trs300_tiles1[[1]][["x"]][equal]), function(k){trs300_tiles1[[2]][["y"]][x_eq[k,]]==trs300_tiles1[[1]][["y"]][equal][k]})
+
+tst<-neibor_voronoi(trs300_tiles1)
+nei_tile_list<-which(unlist(tst)==T)+1
+
+nei_inter<-lapply(trs300_tiles1[c(1, nei_tile_list)], function(tile){cbind(tile[["x"]], tile[["y"]])})
+nei_interpo<-unique(do.call(rbind, nei_inter))
+
+RBF_inter2 = gtm.gbf( RBFGrid, RBFVariance^(1/2), nei_interpo)
+inter_dist2<-gtm.dist(X, RBF_inter2 %*% GTMResults$W)
+inter_R2 = gtm.resp3(inter_dist2, GTMResults$beta, ncol(X))$R
+inter_mean2 = t(inter_R2) %*% (RBF_inter2 %*% GTMResults$W)
+inter_inv2<-sapply(1:nrow(inter_mean2), function(k){inter_mean2[k, ] * attr(X, "scaled:scale") + attr(X, "scaled:center")})
+inter_inv2<-t(inter_inv2)
+points3d(inter_inv2, col=4)
+
+#sphere3dで描画
+spheres3d(torus300[-trs300_vics1, ], radius = 0.08)
+aspect3d("iso")
+spheres3d(torus300[trs300_vics1, ], col=2, radius = 0.08)
+spheres3d(inter_inv2, col=4, radius = 0.08)
+
+#GTM全体補間試し
+trs300_incolle_set1<-gtm_interpolate(torus300_colle_set[[1]][1:5], 30)
+
+figurePlot3d(trs300_incolle_set1[[1]][["noizyX"]][1:300, ])
+points3d(trs300_incolle_set1[[1]][["noizyX"]][301:889, ], col=2)
+spheres3d(trs300_incolle_set1[[1]][["noizyX"]][1:300, ], radius = 0.08)
+spheres3d(trs300_incolle_set1[[1]][["noizyX"]][301:889, ], radius = 0.08, col=2)
+
+trs300_incolle_set1b<-gtm_interpolate(torus300_colle_set[[1]][1:5], 50)
+
+figurePlot3d(trs300_incolle_set1b[[1]][["noizyX"]][1:300, ])
+points3d(trs300_incolle_set1b[[1]][["noizyX"]][301:963, ], col=2)
+
+as.data.frame(cbind(1:31,inter_inv2)) %>%
+  group_by(x) %>%
+  filter(n()>1)
