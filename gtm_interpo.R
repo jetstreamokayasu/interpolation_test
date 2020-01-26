@@ -134,6 +134,7 @@ spheres3d(torus300[trs300_vics1, ], col=3, radius = 0.08)
 spheres3d(inter_inv2, col=2, radius = 0.08)
 
 rgl.snapshot("torus300_vics.png") 
+rgl.postscript("torus300_vics.png", fmt="eps")
 
 #GTM全体補間試し
 #近傍30点
