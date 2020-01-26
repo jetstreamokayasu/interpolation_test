@@ -215,10 +215,21 @@ voronoi_gtm_interpo<-function(figure, nvics){
       
       element[vics]<-element[vics]+1
       
-      vics_oricord<-voronoi_vertex(vics, figure)
+      vics_oricord<-voronoi_vertex2(vics, figure)
+      
+      #ボロノイ図がうまく作成できなかった場合
+      #一度選ばれた点のインデックスを収納するelementを戻す
+      #そして次のステップへ
+      if(is.null(vics_oricord)){
+        
+        element[vics]<-element[vics]-1
+        
+      }else{
       
       if(i==1){oricord<-vics_oricord}
       else{oricord<-rbind(oricord, vics_oricord)}
+        
+      }
       
     }
     
@@ -309,7 +320,7 @@ voronoi_vertex2<-function(vics, figure, MapsizeRow=15, MapsizeColumn=15, RBFsize
   
   require(gtm)
   
-  vics_pca<-stats::prcomp(figure[vics,])
+  #vics_pca<-stats::prcomp(figure[vics,])
   
   #GTMを用いた次元削減
   X<-figure[vics,]
@@ -343,12 +354,20 @@ voronoi_vertex2<-function(vics, figure, MapsizeRow=15, MapsizeColumn=15, RBFsize
   #次元削減後のボロノイ分割
   res<-deldir(GTMMean[,1], GTMMean[,2])
   
+  #ボロノイ図がうまく作成できない場合
+  #終了してNULLを返す
+  if(is.null(res)){
+    
+    return(NULL)
+    
+  }
+  
+  #debugText(vics)
+  #debugText(res[["dirsgs"]][["x1"]], res[["dirsgs"]][["bp1"]])
+  
   #境界領域に接しないボロノイ領域の頂点を選ぶ
   vertx<-cbind(res[["dirsgs"]][["x1"]][!res[["dirsgs"]][["bp1"]]], res[["dirsgs"]][["y1"]][!res[["dirsgs"]][["bp1"]]])
   RBF_inter = gtm.gbf(RBFGrid, RBFVariance^(1/2), vertx)
-  #inter_dist<-gtm.dist(X, RBF_inter %*% GTMResults$W)
-  # inter_R = gtm.resp3(inter_dist, GTMResults$beta, ncol(X))$R
-  # inter_mean = t(inter_R) %*% (RBF_inter %*% GTMResults$W)
   inter_mean<-RBF_inter %*% GTMResults$W
   inter_inv<-sapply(1:nrow(inter_mean), function(k){inter_mean[k, ] * attr(X, "scaled:scale") + attr(X, "scaled:center")})
   
