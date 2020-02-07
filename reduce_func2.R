@@ -46,3 +46,19 @@ reduce_intered<-function(intered_X, ratio, n_ori){
   return(red)
   
 }
+
+
+#点数削減関数まとめ
+#補間されたデータのみを減らす
+## X=減らす前のデータ, ratio=距離の閾値の下位から数える割合
+
+reduce_intered2<-function(intered_X, ratio, n_ori){
+  
+  dist_th<-quantile_threshold(x = ratio, X = intered_X)
+  cell<-cell_set2(x = intered_X, thresh = dist_th)
+  cnct<-connect2(i = 1, cell_p = cell, all = 1:nrow(intered_X))
+  red<-reduce_points(x = intered_X, conect = cnct)
+  
+  return(red)
+  
+}

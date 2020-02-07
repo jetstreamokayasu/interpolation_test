@@ -351,18 +351,20 @@ voronoi_vertex2<-function(vics, figure, MapsizeRow=15, MapsizeColumn=15, RBFsize
   GTMR = gtm.resp3(GTMDist, GTMResults$beta, ncol(X))$R
   GTMMean = t(GTMR) %*% XGrid
   
+  debugText(vics)
+  
   #次元削減後のボロノイ分割
-  res<-deldir(GTMMean[,1], GTMMean[,2])
+  res<-try(deldir(GTMMean[,1], GTMMean[,2]))
   
   #ボロノイ図がうまく作成できない場合
   #終了してNULLを返す
-  if(is.null(res)){
+  if(is.null(res) || class(res)=="try-error"){
     
     return(NULL)
     
   }
   
-  #debugText(vics)
+  
   #debugText(res[["dirsgs"]][["x1"]], res[["dirsgs"]][["bp1"]])
   
   #境界領域に接しないボロノイ領域の頂点を選ぶ
@@ -384,7 +386,7 @@ gtm_inter_reduce<-function(collect, nvic, ratio){
   for (l in 1:length(collect)) {
     inter_oricord<-voronoi_gtm_interpo(collect[[l]][[2]], nvic)
     inter_oricord<-inter_oricord[!is.na(inter_oricord[,1]), ]
-    red_oricord<-reduce_intered(intered_X = rbind(incollect[[l]][[2]], inter_oricord), ratio = ratio, n_ori = nrow(collect[[l]][[2]]))
+    red_oricord<-reduce_intered(intered_X = rbind(collect[[l]][[2]], inter_oricord), ratio = ratio, n_ori = nrow(collect[[l]][[2]]))
     incollect[[l]][[2]]<-red_oricord[["y"]]
     incollect[[l]][[1]]<-nrow(incollect[[l]][[2]])
     cat("dataset", l, "has", incollect[[l]][[1]], "points\n")
