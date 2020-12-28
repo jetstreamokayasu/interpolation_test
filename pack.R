@@ -12,3 +12,5 @@ require(tidyverse)
 require(interpo3d)
 require(seephacm)
 require(gtm)
+
+library(R6)
