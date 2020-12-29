@@ -315,3 +315,61 @@ voronoi_diagram3d<-function(div_tetra_list){
   return(voronoi_verts)
   
 }
+
+#----------------------------
+#4次元データへの補間関数。データ全体に対して行う-----
+#figure=補間対象データ、n_vics=近傍点の数
+#補間された点を返す
+voronoi_interpo4d<-function(figure, n_vics){
+  
+  element<-rep(0, length = nrow(figure))
+  
+  fig_dist<-dist(figure) %>% as.matrix()
+  
+  inted_points<-c()
+  
+  for (i in 1:nrow(figure)) {
+    
+    if(element[i]==0){
+      
+      vics<-get_vicinity(dist = fig_dist, center = i, nvic = n_vics)
+      
+      element[vics]<-element[vics]+1
+      
+      inted_points<-voronoi_border4d(figure, vics)[[1]] %>% rbind(inted_points, .)
+      
+    }
+    
+  }
+  
+  return(inted_points)
+  
+}
+
+#------------------------------------------
+#4次元データfigureにおいて、vicsで指定した近傍点に関して補間を行う関数-----
+voronoi_border4d<-function(figure, vics){
+  
+  vics_pca<-prcomp(figure[vics, ])
+  
+  dela_tetra_list<-delaunay_triangulation3d(data = vics_pca$x[, 1:3])
+  
+  voro_verts<-sapply(dela_tetra_list, function(tetra){tetra$is_vertex(vics_pca$x[1, 1:3])}) %>% which() %>% 
+    sapply(., function(idx)dela_tetra_list[[idx]]$cntr) %>% t()
+  
+  #vics_pcaの最大値以下、または最小値以上の要素を持つ点のみ残す
+  vics_pca_max<-apply(vics_pca$x, 2, max)[1:3]
+  vics_pca_min<-apply(vics_pca$x, 2, min)[1:3]
+  
+  voro_vert_idxs<-apply(voro_verts, 1, function(p){
+    
+    all(map2_lgl(p, vics_pca_max, ~{.x <= .y}), map2_lgl(p, vics_pca_min, ~{.x >= .y}))
+    
+  }) %>% which()
+  
+  vics_oricord<-(voro_verts[voro_vert_idxs, ] %*% t(vics_pca$rotation[, 1:3])) %>% 
+    apply(., 1, function(p){p + figure[vics[1], ]}) %>% t()
+  
+  return(lst(vics_oricord=vics_oricord, voro_verts=voro_verts[voro_vert_idxs, ]))
+  
+}

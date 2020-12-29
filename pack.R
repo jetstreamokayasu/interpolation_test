@@ -14,3 +14,5 @@ require(seephacm)
 require(gtm)
 
 library(R6)
+library(TDAstats)
+library(seephacm)
