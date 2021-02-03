@@ -58,6 +58,7 @@ t3orus4_list3_65_inted<-voronoi_interpo4d(figure = t3orus4_list3_65_inst$data, n
 
 t3orus4_list3_65_inst$create_subsample(sub_size = t3orus4_list3_65_inst$n_points*0.8, n_subs = 1)
 
+
 {inter_start<-Sys.time()
 t3rs4_lst3_65_sub_inted<-t3orus4_list3_65_inst$subsamples[[1]]$data %>% 
   voronoi_interpo4d(figure = ., n_vics = 20) %>% rbind(t3orus4_list3_65_inst$subsamples[[1]]$data, .)
@@ -65,9 +66,80 @@ inter_end<-Sys.time()}
 
 t3rs4_lst3_65_sub_inted_inst<-TDAdataset$new(t3rs4_lst3_65_sub_inted)
 t3rs4_lst3_65_sub_inted_inst$calc_pd(maxdim = 3, maxscale = 9)
+calc.landscape.peak(X = t3rs4_lst3_65_sub_inted_inst$get_pl()[[2]], dimension = 2, 
+                    thresh = t3rs4_lst3_65_sub_inted_inst$get_pl()[["thresh"]]*(2*pi)/usephacm:::surface_nshpere(2))
+
+t3rs4_lst3_65_sub_inted_inst$peaks<-
+  map_dbl(seq_len(3), ~{calc.landscape.peak(X = t3rs4_lst3_65_sub_inted_inst$get_pl()[[.]], dimension = ., 
+                                            thresh = t3rs4_lst3_65_sub_inted_inst$get_pl()[["thresh"]]*(2*pi)/usephacm:::surface_nshpere(.))
+  })
+
+
+
 
 calc.landscape.peak(X = t3rs4_lst3_65_sub_inted_inst$get_pl()[["2-land"]], dimension = 2, 
                     thresh = t3rs4_lst3_65_sub_inted_inst$get_pl()[["thresh"]]/2, tseq = t3rs4_lst3_65_sub_inted_inst$get_pl()[["tseq"]], show = T)
 
 calc.landscape.peak(X = t3rs4_lst3_65_sub_inted_inst$get_pl()[["1-land"]], dimension = 1, 
                     thresh = t3rs4_lst3_65_sub_inted_inst$get_pl()[["thresh"]], tseq = t3rs4_lst3_65_sub_inted_inst$get_pl()[["tseq"]], show = T)
+
+#-------------------------
+#t3orus450_list2を用いて関数テスト----
+
+t3rs450_lst2_77_inst<-TDAdataset$new(t3orus450_list2[[77]])
+t3rs450_lst2_77_inst$calc_pd(maxdim = 3, maxscale = 9)
+
+t3rs450_lst2_77_inst$plot_data()
+points3d(t3rs450_lst2_77_inted_inst$data[451:t3rs450_lst2_77_inted_inst$n_points, ], col = 4)
+movie3d(spin3d(axis = c(0, 1, 0), rpm = 5), duration = 30, 
+        movie = "3d_torus_inted2", dir = "./pics", dev = 1, fps = 10)
+
+{
+  t3rs450_lst2_77_start_time<-Sys.time()
+  
+  t3rs450_lst2_77_inted<-t3rs450_lst2_77_inst$data %>% 
+    voronoi_interpo4d(figure = ., n_vics = 30) %>% rbind(t3rs450_lst2_77_inst$data, .)
+  
+  t3rs450_lst2_77_end_time<-Sys.time()
+}
+
+t3rs450_lst2_77_inted_inst<-TDAdataset$new(t3rs450_lst2_77_inted)
+t3rs450_lst2_77_inted_inst$calc_pd(maxdim = 3, maxscale = 9)
+
+t3rs450_lst2_77_inted_inst$peaks<-
+  map_dbl(seq_len(3), ~{calc.landscape.peak(X = t3rs450_lst2_77_inted_inst$get_pl()[[.]], dimension = ., 
+                                            thresh = t3rs450_lst2_77_inted_inst$get_pl()[["thresh"]]*(2*pi)/usephacm:::surface_nshpere(.))
+  })
+
+#------------------------------
+#補間点を減らしてみる-----
+
+t3rs4_lst3_65_sub<-t3orus4_list3[[1]][["noizyX"]][sample(1:500, 400), ]
+
+t3rs4_lst3_65_sub_inst<-TDAdataset$new(t3rs4_lst3_65_sub)
+
+{inter_start<-Sys.time()
+  t3rs4_lst3_65_sub_inted<-t3rs4_lst3_65_sub %>% 
+    voronoi_interpo4d(figure = ., n_vics = 30) %>% rbind(t3rs4_lst3_65_sub, .)
+  inter_end<-Sys.time()}
+
+t3rs4_lst3_65_sub_inted_inst2<-TDAdataset$new(t3rs4_lst3_65_sub_inted)
+
+t3rs4_lst3_65_sub_inted_inst<-TDAdataset$new(t3rs4_lst3_65_sub_inted[c(1:400, sample(401:nrow(t3rs4_lst3_65_sub_inted), (nrow(t3rs4_lst3_65_sub_inted)-400)*0.45) ), ])
+t3rs4_lst3_65_sub_inted_inst$calc_pd(maxdim = 3, maxscale = 9)
+
+#データ点数削減関数を使ってみる
+{red_start<-Sys.time()
+t3rs4_lst3_65_sub_red<-reduce_intered(intered_X = t3rs4_lst3_65_sub_inted, ratio = 0.75, n_ori = 400)
+red_end<-Sys.time()
+}
+
+t3rs4_lst3_65_sub_red_inst<-TDAdataset$new(t3rs4_lst3_65_sub_red[["y"]])
+t3rs4_lst3_65_sub_red_inst$calc_pd(maxdim = 3, maxscale = 9)
+
+{red_start<-Sys.time()
+  t3rs4_lst3_65_sub_red2<-reduce_intered(intered_X = t3rs4_lst3_65_sub_inted, ratio = 0.5, n_ori = 400)
+  red_end<-Sys.time()
+}
+
+t3rs4_lst3_65_sub_red2_inst<-TDAdataset$new(t3rs4_lst3_65_sub_red2[["y"]])

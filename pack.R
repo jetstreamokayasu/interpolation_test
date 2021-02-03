@@ -10,7 +10,7 @@ require(reshape2)
 require(ggmap)
 require(tidyverse)
 require(interpo3d)
-require(seephacm)
+require(usephacm)
 require(gtm)
 
 library(R6)

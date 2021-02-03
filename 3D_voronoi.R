@@ -55,8 +55,10 @@ V[3]<-G2[3]+4*r_i
 
 #初期四面体S-(T_v)-U-V
 
-#初期四面体確認用プロット
+#点群をプロット
 plot3d(t_data)
+spheres3d(t_data, radius = 0.05)
+#初期四面体確認用プロット
 points3d(rbind(Q, F_m, G), col=2)
 #points3d(rbind(G2, H), col=3)
 points3d(rbind(G2, H, S, T_v, U, V), col=3)
@@ -167,6 +169,9 @@ for (i in 1:nrow(t_data)) {
   
 }
 
+#初期四面体を含めたドロネー分割リスト
+div_tetra_list_with_first_tetra<-div_tetra_list
+
 #-------------------------
 # はじめに作成した四面体の母点をもつ四面体分割を削除------
 del_tetras<-lst()
@@ -206,6 +211,10 @@ for (m in 1:length(div_tetra_list)) {
 }
 
 t_num<-1
+
+plot3d(t_data)
+spheres3d(t_data, radius = 0.05)
+writeWebGL(filename = "./webGL/3d_delaunay.html", width = 800, height = 800)
 
 #------------------------------
 #ボロノイ分割を求める----
@@ -252,17 +261,70 @@ for(s in 1:length(div_tetra_list)){
   
 }
 
+#初期四面体を含めた場合
+
+voronoi_verts_with_first_tetra<-lst()
+
+for(s in 1:length(div_tetra_list_with_first_tetra)){
+  
+  tri_1<-div_tetra_list_with_first_tetra[[s]]
+  tri_1_verts<-lst(tri_1$p1, tri_1$p2, tri_1$p3, tri_1$p4)
+  
+  debugText(s)
+  
+  for (t in 1:length(div_tetra_list_with_first_tetra)) {
+    
+    debugText(t)
+    
+    if(s==t){next}
+    
+    tri_2<-div_tetra_list_with_first_tetra[[t]]
+    
+    cnt2<-0
+    
+    if(some(tri_1_verts, ~{all(. == tri_2$p1)})){cnt2<-cnt2+1}
+    
+    if(some(tri_1_verts, ~{all(. == tri_2$p2)})){cnt2<-cnt2+1}
+    
+    if(some(tri_1_verts, ~{all(. == tri_2$p3)})){cnt2<-cnt2+1}
+    
+    if(some(tri_1_verts, ~{all(. == tri_2$p4)})){cnt2<-cnt2+1}
+    
+    debugText(cnt2)
+    
+    if(cnt2 == 3){
+      
+      if(none(voronoi_verts_with_first_tetra, ~{is.element(c(s,t), .$tetra_idx) %>% all()})){
+        
+        voronoi_verts_with_first_tetra[[length(voronoi_verts_with_first_tetra)+1]]<-rbind(tri_1$cntr, tri_2$cntr) %>% as_tibble() %>% 
+          lst(voro_v = ., tetra_idx = c(s,t)) 
+        
+      }
+    }
+    
+  }
+  
+}
+
 #----------------------------
 #ボロノイ描画
 lines3d(voronoi_verts[[1]])
 
+#初期四面体あり
+for (n in 1:length(voronoi_verts_with_first_tetra)) {
+  lines3d(voronoi_verts_with_first_tetra[[n]]$voro_v, col = "red")
+  #text3d(voronoi_verts[[n]]$voro_v, texts = n)
+}
+
+#初期四面体なし
 for (n in 1:length(voronoi_verts)) {
   lines3d(voronoi_verts[[n]]$voro_v)
   #text3d(voronoi_verts[[n]]$voro_v, texts = n)
 }
 
 plot3d(t_data)
-spheres3d(t_data, col = 2, radius = 0.05)
+spheres3d(t_data, col = 4, radius = 0.05)
+writeWebGL(width = 800, height = 800)
 
 v_num<-24
 t_num1<-voronoi_verts[[v_num]]$tetra_idx[1]
@@ -295,3 +357,12 @@ for (u in tetra_idx) {
 }
 
 voro_vert<-sapply(tetzra_idx, function(idx)div_tetra_list2[[idx]]$cntr) %>% t() %>% as_tibble()
+
+
+#------------------------
+#rglアニメーション---
+
+play3d(spin3d(axis = c(0, 1, 0), rpm = 5))
+rgl_anime<-spin3d(axis = c(0, 0, 1), rpm = 3)
+movie3d(rgl_anime, duration = 30, movie = "delaunay", dir = "./pics", dev = 1, fps = 10)
+
