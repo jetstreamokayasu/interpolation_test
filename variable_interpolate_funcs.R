@@ -54,7 +54,7 @@ neighbor_voronoi_vertex<-function(vicinity, figure, neighbor = 0){
   
   if(neighbor == "all"){
     
-    vertxs<-cbind(vicinity$res[["x1"]][ !vicinity$res[["dirsgs"]][["bp1"]] ], vicinity$res[["dirsgs"]][["y1"]][ !vicinity$res[["dirsgs"]][["bp1"]] ])
+    vertxs<-vicinity$res[["dirsgs"]] %$%  cbind(x1[!bp1], y1[!bp1])
     
   }else{
     
@@ -62,11 +62,12 @@ neighbor_voronoi_vertex<-function(vicinity, figure, neighbor = 0){
     
     if(neighbor > 0){
       
-      voro_idx<-vicinity$res[["dirsgs"]] %$% c(ind1[ind2 == 1], ind2[ind1 == 1]) %>% sort() %>% magrittr::extract(1:neighbor)
+      voro_idx<-vicinity$res[["dirsgs"]] %$% c(ind1[ind2 == 1], ind2[ind1 == 1]) %>% sort() %>% magrittr::extract(1:min(neighbor, length(.)))
       
-      candi_vertxs_idx<-vicinity$res[["dirsgs"]] %$% ( (is.element(ind1, voro_idx) & (ind2 != 1)) | (is.element(ind2, voro_idx) & (ind1 != 1)) )
+      candi_vertxs_idx1<-vicinity$res[["dirsgs"]] %$% (is.element(ind1, voro_idx) & (ind2 != 1) & not(bp1))
+      candi_vertxs_idx2<-vicinity$res[["dirsgs"]] %$% (is.element(ind2, voro_idx) & (ind1 != 1) & not(bp2))
 
-      vertxs<-vicinity$res[["dirsgs"]] %$% rbind(cbind(x1[candi_vertxs_idx], y1[candi_vertxs_idx]), cbind(x2[candi_vertxs_idx], y2[candi_vertxs_idx]) ) %>% 
+      vertxs<-vicinity$res[["dirsgs"]] %$% rbind(cbind(x1[candi_vertxs_idx1], y1[candi_vertxs_idx1]), cbind(x2[candi_vertxs_idx2], y2[candi_vertxs_idx2]) ) %>% 
         rbind(vertxs, .)
       
       dupl_idx<-lapply(seq_len(nrow(vertxs)-1), function(i){sapply((i+1):nrow(vertxs), function(j){
@@ -87,20 +88,19 @@ neighbor_voronoi_vertex<-function(vicinity, figure, neighbor = 0){
     
   }
   
-  
-  vertx_oricord<-(vertxs %*% t(vicinity$vics_pca$rotation[, 1:2])) %>% 
-    apply(., 1, function(cntr){cntr + figure[vicinity$vics_idx[1], ]}) %>% t()
-  
+  vertx_oricord<-(vertxs %*% t(vicinity$vics_pca$rotation[, 1:2])) %>%
+    apply(., 1, function(p){p + figure[vicinity$vics_idx[1], ]}) %>% t()
+
   return(lst(vertx_oricord = vertx_oricord, voro_vertx = vertxs))
   
 }
 
-  #---------------------------------------
+#---------------------------------------
 #隣接するボロノイ領域の頂点へも補間する処理を、データ全体に行う関数----
 #現時点では全ボロノイ領域の頂点に補間する
 #figure=補間対象データ、nvics=近傍点数
 
-neighbor_voronoi_interpol<-function(figure, nvics){
+neighbor_voronoi_interpol<-function(figure, nvics, neighbor = 0){
   
   element<-rep(0, length = nrow(figure))
   
@@ -114,7 +114,7 @@ neighbor_voronoi_interpol<-function(figure, nvics){
       
       element[vicinity$vics_idx]<-element[vicinity$vics_idx]+1
       
-      inted_point<-neighbor_voronoi_vertex(vicinity, figure)[[1]] %>% rbind(inted_point, .)
+      inted_point<-neighbor_voronoi_vertex(vicinity, figure, neighbor)[[1]] %>% rbind(inted_point, .)
       
     }
     

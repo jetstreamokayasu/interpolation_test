@@ -68,7 +68,8 @@ figurePlot3d(trs300_cole1_43$data[-trs300_cole1_43_201voro$vics_idx, ])
 points3d(trs300_cole1_43$data[trs300_cole1_43_201voro$vics_idx, ], col = "green")
 points3d(trs300_cole1_43_201inted$vertx_oricord, col = "red")
 
-trs300_cole1_43_inted<-neibor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10)
+#データ全体の補間
+trs300_cole1_43_inted<-neighbor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10)
 trs300_cole1_43$plot_data()
 points3d(trs300_cole1_43_inted, col = "red")
 
@@ -87,19 +88,35 @@ points(trs300_cole1_43_201_toadd_nei1$voro_vertx[, 1], trs300_cole1_43_201_toadd
 trs300_cole1_43_201_toadd_nei2<-neighbor_voronoi_vertex(vicinity = trs300_cole1_43_201voro, figure = trs300_cole1_43$data, neighbor = 2)
 points(trs300_cole1_43_201_toadd_nei2$voro_vertx[, 1], trs300_cole1_43_201_toadd_nei2$voro_vertx[, 2], pch = 16, col ="orange")
 
-candi_vertxs_idx_tst<-trs300_cole1_43_201voro$res[["dirsgs"]] %$% ( (is.element(ind1, c(2, 3)) & (ind2 != 1)) | (is.element(ind2, c(2, 3)) & (ind1 != 1)) )
+points3d(trs300_cole1_43_201_toadd_nei2$vertx_oricord, col = "red")
 
-candi_vertxs_tst<-trs300_cole1_43_201voro$res[["dirsgs"]] %$% rbind(cbind(x1[candi_vertxs_idx_tst], y1[candi_vertxs_idx_tst]), cbind(x2[candi_vertxs_idx_tst], y2[candi_vertxs_idx_tst]) )
+#指定数3(中央および隣接する3つのボロノイ領域頂点にのみ補う)
+trs300_cole1_43_201_toadd_nei3<-neighbor_voronoi_vertex(vicinity = trs300_cole1_43_201voro, figure = trs300_cole1_43$data, neighbor = 3)
+points(trs300_cole1_43_201_toadd_nei3$voro_vertx[, 1], trs300_cole1_43_201_toadd_nei3$voro_vertx[, 2], pch = 16, col ="blueviolet")
 
-dupl_idx<-lapply(seq_len(nrow(candi_vertxs_tst)-1), function(i){sapply((i+1):nrow(candi_vertxs_tst), function(j){
+#全ボロノイ領域の頂点へ補う
+trs300_cole1_43_201_toadd_allnei<-neighbor_voronoi_vertex(vicinity = trs300_cole1_43_201voro, figure = trs300_cole1_43$data, neighbor = "all")
+points(trs300_cole1_43_201_toadd_allnei$voro_vertx[, 1], trs300_cole1_43_201_toadd_allnei$voro_vertx[, 2], pch = 16, col ="blueviolet")
 
-  
-  dupl<-c()
-  
-  if(identical(candi_vertxs_tst[i, ], candi_vertxs_tst[j, ])){dupl<-c(dupl, j)}
-  
-  if(length(dupl)==0){dupl<-0}
-  
-  return(dupl)
-  
-})}) %>%  unlist() %>% unique() %>% magrittr::extract(.!=0)
+points3d(trs300_cole1_43_201_toadd_allnei$vertx_oricord, col = "red")
+
+#指定数3(中央および隣接する3つのボロノイ領域頂点にのみ補う)でデータ全体を補間
+trs300_cole1_43_toadd_nei3<-neighbor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10, neighbor = 3)
+trs300_cole1_43$plot_data()
+points3d(trs300_cole1_43_toadd_nei3, col = "red")
+
+#指定数1(中央および隣接する1つのボロノイ領域頂点にのみ補う)でデータ全体を補間
+trs300_cole1_43_toadd_nei1<-neighbor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10, neighbor = 1)
+trs300_cole1_43$plot_data()
+points3d(trs300_cole1_43_toadd_nei1, col = "red")
+
+#指定数6(中央および隣接する6つのボロノイ領域頂点にのみ補う)でデータ全体を補間
+#隣接数を過大に設定するとどうなるか確かめる
+trs300_cole1_43_toadd_nei6<-neighbor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10, neighbor = 6)
+trs300_cole1_43$plot_data()
+points3d(trs300_cole1_43_toadd_nei6, col = "red")
+
+#全ボロノイ領域の頂点への補間をデータ全体に
+trs300_cole1_43_toadd_allnei<-neighbor_voronoi_interpol(figure = trs300_cole1_43$data, nvics = 10, neighbor = "all")
+trs300_cole1_43$plot_data()
+points3d(trs300_cole1_43_toadd_allnei, col = "red")
